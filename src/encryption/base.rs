@@ -92,3 +92,17 @@ pub fn encrypt(data: &[u8],) -> String {
 
     output
 }
+
+pub fn example() {
+    let data = "Yo yo if this works your lit homie";
+
+    println!("Data to encrypt: \"{}\"", &data);
+
+    println!("Encrypting now");
+    let res = encrypt(data.as_bytes());
+    println!("Encrypted response: {}", res);
+
+    let decrypted_bytes = decrypt(res.as_str()).unwrap();
+    let decrypted_string = std::str::from_utf8(&decrypted_bytes).unwrap();
+    println!("Decrypted response: {}", decrypted_string);
+}
