@@ -1,9 +1,9 @@
-use std::{path::{Path, PathBuf}};
+use std::path::{Path, PathBuf};
 
 
 
 pub fn encrypt_file() {
-    let path = Path::new(".").display();
+    let _path = Path::new(".").display();
 
 }
 

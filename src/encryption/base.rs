@@ -49,7 +49,7 @@ pub fn decrypt(iv_data_mac: &str,) -> Result<Vec<u8>, Box<dyn Error>> {
 
     // I don't use the aad for verification. aad isn't encrypted anyway, so it's just specified
     // as &[].
-    let mut decipher = AesGcm::new(key_size, &RANDOM_BYTES.to_vec(), &iv, &[]);
+    let mut decipher = AesGcm::new(key_size, RANDOM_BYTES.as_ref(), &iv, &[]);
 
     // create a list where the decoded data will be saved. dst is transformed in place. It must be exactly the same
     // size as the encrypted data
@@ -76,7 +76,7 @@ pub fn encrypt(data: &[u8],) -> String {
 
     let iv = get_iv(12);
 
-    let mut cipher = AesGcm::new(key_size, &RANDOM_BYTES.to_vec(), &iv, &[]);
+    let mut cipher = AesGcm::new(key_size, RANDOM_BYTES.as_ref(), &iv, &[]);
 
     let mut encrypted = vec![0u8; data.len()];
     let mut mac = vec![0u8; 16];
