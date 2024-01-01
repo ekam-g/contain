@@ -94,8 +94,8 @@ pub fn encrypt(data: &[u8],) -> String {
     output
 }
 
-pub fn main() {
-    let data = "hello world";
+pub fn test() {
+    let data = "Yo yo if this works your lit homie";
 
     println!("Data to encrypt: \"{}\" and password: \"{:?}\"", &data, RANDOM_BYTES);
 
@@ -103,7 +103,6 @@ pub fn main() {
     let res = encrypt(data.as_bytes());
     println!("Encrypted response: {}", res);
 
-    println!("Decrypting the response");
     let decrypted_bytes = decrypt(res.as_str()).unwrap();
     let decrypted_string = from_utf8(&decrypted_bytes).unwrap();
     println!("Decrypted response: {}", decrypted_string);
