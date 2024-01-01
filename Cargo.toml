@@ -8,5 +8,6 @@ edition = "2021"
 [dependencies]
 const-random = "0.1.17"
 hex = "0.4.3"
+home = "0.5.9"
 rand = "0.8.5"
 rust-crypto = "0.2.36"
