@@ -5,7 +5,7 @@ use std::fs::{File, OpenOptions};
 use super::base::{encrypt, decrypt};
 
 fn read_file(path: PathBuf) -> Result<(File, String), std::io::Error>{
-    let mut file = OpenOptions::new()
+    let file = OpenOptions::new()
     .read(true)
     .write(true)
     .create(true)
