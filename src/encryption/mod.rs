@@ -57,8 +57,9 @@ pub fn decrypt(iv_data_mac: &str,) -> Result<Vec<u8>, Box<dyn Error>> {
     let mut dst: Vec<u8> = repeat(0).take(data.len()).collect();
     let result = decipher.decrypt(&data, &mut dst, &mac);
 
-    if result { println!("Successful decryption"); }
-    println!("\nDecrypted {}", str::from_utf8(&dst).unwrap());
+    if !result{
+        return Err(Box::new(std::io::Error::new(std::io::ErrorKind::Other, "Failed To Decrypt")));
+    }
 
     Ok(dst)
 }
