@@ -6,6 +6,11 @@ use crypto::aead::{AeadDecryptor, AeadEncryptor};
 use crypto::aes::KeySize;
 use crypto::aes_gcm::AesGcm;
 use rand::{thread_rng, Rng};
+use const_random::const_random;
+
+
+const RANDOM_BYTES: [u8; 16] = const_random!([u8 ; 16]);
+
 
 /// orig must be a string of the form [hexNonce]/[hexCipherText]/[hexMac]. This
 /// is the data returned from encrypt(). This function splits the data, removes
@@ -39,15 +44,13 @@ fn get_valid_key(key: &str) -> Vec<u8> {
 ///iv_data_mac is a string that contains the iv/nonce, data, and mac values. All these values
 /// must be hex encoded, and separated by "/" i.e. [hex(iv)/hex(data)/hex(mac)]. This function decodes
 /// the values. key (or password) is the raw (not hex encoded) password
-pub fn decrypt(iv_data_mac: &str, key: &str) -> Result<Vec<u8>, Box<dyn Error>> {
+pub fn decrypt(iv_data_mac: &str,) -> Result<Vec<u8>, Box<dyn Error>> {
     let (iv, data, mac) = split_iv_data_mac(iv_data_mac)?;
-    let key = get_valid_key(key);
-
     let key_size = crypto::aes::KeySize::KeySize128;
 
     // I don't use the aad for verification. aad isn't encrypted anyway, so it's just specified
     // as &[].
-    let mut decipher = AesGcm::new(key_size, &key, &iv, &[]);
+    let mut decipher = AesGcm::new(key_size, &RANDOM_BYTES.to_vec(), &iv, &[]);
 
     // create a list where the decoded data will be saved. dst is transformed in place. It must be exactly the same
     // size as the encrypted data
@@ -68,13 +71,12 @@ fn get_iv(size: usize) -> Vec<u8> {
 
 ///encrypt "data" using "password" as the password
 /// Output is [hexNonce]/[hexCipher]/[hexMac] (nonce and iv are the same thing)
-pub fn encrypt(data: &[u8], password: &str) -> String {
+pub fn encrypt(data: &[u8],) -> String {
     let key_size = KeySize::KeySize128;
 
-    let valid_key = get_valid_key(password);
     let iv = get_iv(12);
 
-    let mut cipher = AesGcm::new(key_size, &valid_key, &iv, &[]);
+    let mut cipher = AesGcm::new(key_size, &RANDOM_BYTES.to_vec(), &iv, &[]);
 
     let mut encrypted = vec![0u8; data.len()];
     let mut mac = vec![0u8; 16];
@@ -93,16 +95,15 @@ pub fn encrypt(data: &[u8], password: &str) -> String {
 
 pub fn main() {
     let data = "hello world";
-    let password = "12345";
 
-    println!("Data to encrypt: \"{}\" and password: \"{}\"", &data, &password);
+    println!("Data to encrypt: \"{}\" and password: \"{:?}\"", &data, RANDOM_BYTES);
 
     println!("Encrypting now");
-    let res = encrypt(data.as_bytes(), password);
+    let res = encrypt(data.as_bytes());
     println!("Encrypted response: {}", res);
 
     println!("Decrypting the response");
-    let decrypted_bytes = decrypt(res.as_str(), password).unwrap();
+    let decrypted_bytes = decrypt(res.as_str()).unwrap();
     let decrypted_string = from_utf8(&decrypted_bytes).unwrap();
     println!("Decrypted response: {}", decrypted_string);
 }
