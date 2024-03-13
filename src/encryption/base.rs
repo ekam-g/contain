@@ -8,7 +8,7 @@ use rand::{thread_rng, Rng};
 use const_random::const_random;
 
 
-const RANDOM_BYTES: [u8; 16] = const_random!([u8 ; 16]);
+const RANDOM_BYTES: [u8; 16] = random();
 
 
 /// orig must be a string of the form [hexNonce]/[hexCipherText]/[hexMac]. This
@@ -46,7 +46,6 @@ pub fn get_valid_key(key: &str) -> Vec<u8> {
 pub fn decrypt(iv_data_mac: &str,) -> Result<Vec<u8>, Box<dyn Error>> {
     let (iv, data, mac) = split_iv_data_mac(iv_data_mac)?;
     let key_size = crypto::aes::KeySize::KeySize128;
-
     // I don't use the aad for verification. aad isn't encrypted anyway, so it's just specified
     // as &[].
     let mut decipher = AesGcm::new(key_size, RANDOM_BYTES.as_ref(), &iv, &[]);
@@ -68,7 +67,6 @@ fn get_iv(size: usize) -> Vec<u8> {
     let mut rng = thread_rng();
     (0..size).map(|_| rng.gen()).collect()
 }
-
 ///encrypt "data" using "password" as the password
 /// Output is [hexNonce]/[hexCipher]/[hexMac] (nonce and iv are the same thing)
 pub fn encrypt(data: &[u8],) -> String {
@@ -105,4 +103,15 @@ pub fn example() {
     let decrypted_bytes = decrypt(res.as_str()).unwrap();
     let decrypted_string = std::str::from_utf8(&decrypted_bytes).unwrap();
     println!("Decrypted response: {}", decrypted_string);
+}
+
+const fn random() -> [u8 ; 16]{
+    let mut random_array: [u8 ; 16] = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
+    random_array.iter_mut().for_each(f)
+    let mut x = 0;
+    while x != 16  {
+        random_array[x] = const_random!(u8);
+        x+=1;
+    }
+    random_array
 }
