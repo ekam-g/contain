@@ -106,7 +106,7 @@ pub fn example() {
 }
 // TODO: change this to better rust
 const fn random() -> [u8 ; 16]{
-    let mut random_array: [u8 ; 16] = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
+    let mut random_array: [u8; 16] = [0; 16];    
     let mut x = 0;
     while x != 16  {
         random_array[x] = const_random!(u8);
