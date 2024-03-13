@@ -104,10 +104,9 @@ pub fn example() {
     let decrypted_string = std::str::from_utf8(&decrypted_bytes).unwrap();
     println!("Decrypted response: {}", decrypted_string);
 }
-
+// TODO: change this to better rust
 const fn random() -> [u8 ; 16]{
     let mut random_array: [u8 ; 16] = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
-    random_array.iter_mut().for_each(f)
     let mut x = 0;
     while x != 16  {
         random_array[x] = const_random!(u8);
