@@ -4,31 +4,34 @@ use std::fs::{File, OpenOptions};
 use crate::encryption::base::KEY;
 use super::base::{encrypt, decrypt};
 
-fn read_file(path: PathBuf) -> Result<(File, String), std::io::Error>{
+
+fn read_file(path: PathBuf) -> Result<(File, Vec<u8>), std::io::Error> {
     let file = OpenOptions::new()
-    .read(true)
-    .write(true)
-    .create(true)
-    .open(path)?;
+        .read(true)
+        .write(true)
+        .open(path)?;
+
     let mut buf_reader = BufReader::new(&file);
-    let mut data = String::new();
-    buf_reader.read_to_string(&mut data)?;
+    let mut data: Vec<u8> = Vec::new();
+    buf_reader.read_to_end(&mut data)?;
+
     Ok((file, data))
 }
 
 pub fn encrypt_file(path : PathBuf) -> anyhow::Result<File>{
-    let (mut file,mut data) = read_file(path)?;
-    data = String::from_utf8(encrypt(data.as_bytes(), KEY.as_ref())?)?;
+    let (mut file, data) = read_file(path)?;
+    let encrypted_data = encrypt(&data, KEY.as_ref())?;
+    drop(data);
     file.seek(SeekFrom::Start(0)).unwrap();
     file.set_len(0)?;
-    file.write_all(data.as_bytes()).unwrap();
+    file.write_all(&encrypted_data).unwrap();
     file.flush()?;
     Ok(file)
 }
 
 pub fn decrypt_file(path: PathBuf) -> anyhow::Result<File> {
     let (mut file,data) = read_file(path)?;
-    let data =decrypt(data.as_bytes(), KEY.as_ref())?;
+    let data =decrypt(&data, KEY.as_ref())?;
     file.seek(SeekFrom::Start(0)).unwrap();
     file.set_len(0)?;
     file.write_all(&data).unwrap();
@@ -48,15 +51,14 @@ pub fn file_location() -> PathBuf {
     home_dir.set_extension("contain");
     home_dir
 }
-
+#[test]
 pub fn example() {
     let mut path = PathBuf::new();
     path.push("test");
     path.set_extension("txt");
     encrypt_file(path.clone()).unwrap();
-    let (_, data) = read_file(path.clone()).unwrap();
-    println!("{data}");
+    let (_, _) = read_file(path.clone()).unwrap();
     decrypt_file(path.clone()).unwrap();
     let (_, data) = read_file(path).unwrap();
-    println!("{data}");
+    println!("{}", String::from_utf8_lossy(&data));
 }

@@ -59,7 +59,7 @@ const fn random_noice() -> [u8; 12] {
 #[test]
 pub fn example() {
     let data = "Yo yo if this works your lit homie";
-    let key = get_valid_key("Hello TEST key IHBGEJHFBWOHDFBJSHDBFJHASDBFJHASJHDBsspp>");
+    let key = KEY;
     println!("Data to encrypt: \"{}\"", &data);
     let res = encrypt(data.as_bytes(), &key).unwrap();
     println!("Encrypied Data {}", String::from_utf8_lossy(&res));
