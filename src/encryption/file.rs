@@ -18,7 +18,7 @@ fn read_file(path: PathBuf) -> Result<(File, String), std::io::Error>{
 
 pub fn encrypt_file(path : PathBuf) -> anyhow::Result<File>{
     let (mut file,mut data) = read_file(path)?;
-    data = String::from_utf8(encrypt(data.as_bytes(), &RANDOM_BYTES.to_vec())?)?;
+    data = String::from_utf8(encrypt(data.as_bytes(), RANDOM_BYTES.as_ref())?)?;
     file.seek(SeekFrom::Start(0)).unwrap();
     file.set_len(0)?;
     file.write_all(data.as_bytes()).unwrap();
@@ -28,7 +28,7 @@ pub fn encrypt_file(path : PathBuf) -> anyhow::Result<File>{
 
 pub fn decrypt_file(path: PathBuf) -> anyhow::Result<File> {
     let (mut file,data) = read_file(path)?;
-    let data =decrypt(data.as_bytes(), &RANDOM_BYTES.to_vec())?;
+    let data =decrypt(data.as_bytes(), RANDOM_BYTES.as_ref())?;
     file.seek(SeekFrom::Start(0)).unwrap();
     file.set_len(0)?;
     file.write_all(&data).unwrap();
