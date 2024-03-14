@@ -4,6 +4,7 @@ use anyhow::anyhow;
 use const_random::const_random;
 use std::str;
 
+// Define constants for key and nonce this changes only during compling after a cargo clean
 pub const KEY: [u8; 32] = random_key();
 pub const NOICE: [u8; 12] = random_noice();
 /// Generates a valid key. This must be exactly 32 bytes.
@@ -16,7 +17,7 @@ pub fn get_valid_key(key: &str) -> [u8; 32] {
     bytes[..len].copy_from_slice(&key_bytes[..len]);
     bytes
 }
-
+/// Encrypts the given contents using AES-GCM with the provided key.
 pub fn encrypt(contents: &[u8], key: &[u8]) -> anyhow::Result<Vec<u8>> {
     let key: &GenericArray<u8, _> = GenericArray::from_slice(key);
     let nonce = GenericArray::from_slice(&NOICE); // You need to generate your nonce securely, here I'm using a zero nonce for simplicity    // encryption
@@ -25,7 +26,7 @@ pub fn encrypt(contents: &[u8], key: &[u8]) -> anyhow::Result<Vec<u8>> {
         .encrypt(&nonce, contents.as_ref())
         .map_err(|e| anyhow!(e))
 }
-
+/// Decrypts the given ciphertext using AES-GCM with the provided key.
 pub fn decrypt(cipher_text: &[u8], key: &[u8]) -> anyhow::Result<Vec<u8>> {
     let key = GenericArray::from_slice(key);
     // let nonce = Aes256Gcm::generate_nonce(&mut aead::OsRng);
@@ -33,7 +34,7 @@ pub fn decrypt(cipher_text: &[u8], key: &[u8]) -> anyhow::Result<Vec<u8>> {
     let cipher = Aes256Gcm::new(key);
     cipher.decrypt(&nonce, cipher_text).map_err(|e| anyhow!(e))
 }
-
+/// Generates a random 32-byte key using compile-time randomness.
 const fn random_key() -> [u8; 32] {
     let mut random_array: [u8; 32] = [0; 32];
     let mut x = 0;
@@ -43,6 +44,7 @@ const fn random_key() -> [u8; 32] {
     }
     random_array
 }
+/// Generates a random 12-byte nonce using compile-time randomness.
 const fn random_noice() -> [u8; 12] {
     let mut random_array: [u8; 12] = [0; 12];
     let mut x = 0;
