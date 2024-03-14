@@ -1,9 +1,7 @@
-use std::{error::Error, str::FromStr};
+use std::{error::Error};
 use std::str;
-use std::iter::repeat;
-use aead::{generic_array::{sequence::GenericSequence, GenericArray}, Aead, AeadCore, KeyInit};
-use aes_gcm::{Aes256Gcm, Nonce};
-use rand::{thread_rng, Rng};
+use aead::{generic_array::{GenericArray}, Aead, AeadCore, KeyInit};
+use aes_gcm::{Aes256Gcm};
 use const_random::const_random;
 use anyhow::anyhow;
 
@@ -36,14 +34,6 @@ pub fn get_valid_key(key: &str) -> Vec<u8> {
     
     bytes
 }
-
-/// Creates an initial vector (iv). This is also called a nonce
-fn get_iv(size: usize) -> Vec<u8> {
-    let mut rng = thread_rng();
-    (0..size).map(|_| rng.gen()).collect()
-}
-///encrypt "data" using "password" as the password
-/// Output is [hexNonce]/[hexCipher]/[hexMac] (nonce and iv are the same thing)
 
 pub fn encrypt(contents: &[u8], key: &[u8]) -> anyhow::Result<Vec<u8>> {
     let key = GenericArray::from_slice(key);
