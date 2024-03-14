@@ -44,13 +44,15 @@ const fn random() -> [u8 ; 32]{
 
 #[test]
 pub fn example() {
-    let data = "Yo yo if this works your lit homie";
-    let key = get_valid_key("Hello TEST key IHBGEJHFBWOHDFBJSHDBFJHASDBFJHASJHDBsspp>");
-    println!("Data to encrypt: \"{}\"", &data);
-    let res = encrypt(data.as_bytes(), &key).unwrap();
-    println!("Encrypied Data {}", String::from_utf8_lossy(&res));
-    let decrypted_bytes = decrypt(&res, &key).unwrap();
-    let decrypted_string = std::str::from_utf8(&decrypted_bytes).unwrap();
-    println!("Decrypted response: {}", decrypted_string);
-    assert! (decrypted_string == data.to_string());
+    for _ in 0..100 {
+        let data = "Yo yo if this works your lit homie";
+        let key = get_valid_key("Hello TEST key IHBGEJHFBWOHDFBJSHDBFJHASDBFJHASJHDBsspp>");
+        println!("Data to encrypt: \"{}\"", &data);
+        let res = encrypt(data.as_bytes(), &key).unwrap();
+        println!("Encrypied Data {}", String::from_utf8_lossy(&res));
+        let decrypted_bytes = decrypt(&res, &key).unwrap();
+        let decrypted_string = std::str::from_utf8(&decrypted_bytes).unwrap();
+        println!("Decrypted response: {}", decrypted_string);
+        assert! (decrypted_string == data.to_string());
+    }
 }
