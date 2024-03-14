@@ -52,5 +52,5 @@ pub fn example() {
     let decrypted_bytes = decrypt(&res, &key).unwrap();
     let decrypted_string = std::str::from_utf8(&decrypted_bytes).unwrap();
     println!("Decrypted response: {}", decrypted_string);
-    assert! (decrypted_string != data.to_string())
+    assert! (decrypted_string == data.to_string());
 }
