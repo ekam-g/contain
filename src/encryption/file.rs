@@ -54,6 +54,8 @@ pub fn file_location() -> PathBuf {
 #[test]
 pub fn example() {
     let mut path = PathBuf::new();
+    path.push("src");
+    path.push("encryption");
     path.push("test");
     path.set_extension("txt");
     encrypt_file(path.clone()).unwrap();
