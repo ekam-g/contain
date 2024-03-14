@@ -1,12 +1,11 @@
-use std::error::Error;
+use std::{error::Error, str::FromStr};
 use std::str;
 use std::iter::repeat;
-use crypto::aead::{AeadDecryptor, AeadEncryptor};
-use crypto::aes::KeySize;
-use crypto::aes_gcm::AesGcm;
+use aead::{generic_array::{sequence::GenericSequence, GenericArray}, Aead, AeadCore, KeyInit};
+use aes_gcm::{Aes256Gcm, Nonce};
 use rand::{thread_rng, Rng};
 use const_random::const_random;
-
+use anyhow::anyhow;
 
 const RANDOM_BYTES: [u8; 16] = random();
 
@@ -38,30 +37,6 @@ pub fn get_valid_key(key: &str) -> Vec<u8> {
     bytes
 }
 
-
-///Decryption using AES-GCM 128
-///iv_data_mac is a string that contains the iv/nonce, data, and mac values. All these values
-/// must be hex encoded, and separated by "/" i.e. [hex(iv)/hex(data)/hex(mac)]. This function decodes
-/// the values. key (or password) is the raw (not hex encoded) password
-pub fn decrypt(iv_data_mac: &str,) -> Result<Vec<u8>, Box<dyn Error>> {
-    let (iv, data, mac) = split_iv_data_mac(iv_data_mac)?;
-    let key_size = crypto::aes::KeySize::KeySize128;
-    // I don't use the aad for verification. aad isn't encrypted anyway, so it's just specified
-    // as &[].
-    let mut decipher = AesGcm::new(key_size, RANDOM_BYTES.as_ref(), &iv, &[]);
-
-    // create a list where the decoded data will be saved. dst is transformed in place. It must be exactly the same
-    // size as the encrypted data
-    let mut dst: Vec<u8> = repeat(0).take(data.len()).collect();
-    let result = decipher.decrypt(&data, &mut dst, &mac);
-
-    if !result{
-        return Err(Box::new(std::io::Error::new(std::io::ErrorKind::Other, "Failed To Decrypt")));
-    }
-
-    Ok(dst)
-}
-
 /// Creates an initial vector (iv). This is also called a nonce
 fn get_iv(size: usize) -> Vec<u8> {
     let mut rng = thread_rng();
@@ -69,28 +44,24 @@ fn get_iv(size: usize) -> Vec<u8> {
 }
 ///encrypt "data" using "password" as the password
 /// Output is [hexNonce]/[hexCipher]/[hexMac] (nonce and iv are the same thing)
-pub fn encrypt(data: &[u8],) -> String {
-    let key_size = KeySize::KeySize128;
 
-    let iv = get_iv(12);
-
-    let mut cipher = AesGcm::new(key_size, RANDOM_BYTES.as_ref(), &iv, &[]);
-
-    let mut encrypted = vec![0u8; data.len()];
-    let mut mac = vec![0u8; 16];
-
-    cipher.encrypt(data, &mut encrypted, &mut mac);
-
-    let output = format!(
-        "{}/{}/{}",
-        hex::encode(iv),
-        hex::encode(&encrypted),
-        hex::encode(&mac)
-    );
-
-    output
+fn encrypt(contents: &[u8], key: &[u8]) -> anyhow::Result<Vec<u8>> {
+    let key = GenericArray::from_slice(key);
+    let nonce = Aes256Gcm::generate_nonce(&mut aead::OsRng);
+    // encryption
+    let cipher = Aes256Gcm::new(key);
+    cipher
+        .encrypt(&nonce, contents.as_ref())
+        .map_err(|e| anyhow!(e))
 }
 
+fn decrypt(cipher_text: &[u8], key: &[u8]) -> anyhow::Result<Vec<u8>> {
+    let key = GenericArray::from_slice(key);
+    let nonce = Aes256Gcm::generate_nonce(&mut aead::OsRng);
+    // decryption
+    let cipher = Aes256Gcm::new(key);
+    cipher.decrypt(&nonce, cipher_text).map_err(|e| anyhow!(e))
+}
 pub fn example() {
     let data = "Yo yo if this works your lit homie";
 
@@ -106,8 +77,7 @@ pub fn example() {
 }
 // TODO: change this to better rust
 const fn random() -> [u8 ; 16]{
-    let mut random_array: [u8; 16] = [0; 16];    
-    let mut x = 0;
+    let mut random_array: [u8; 16] = [0; 16];    let mut x = 0;
     while x != 16  {
         random_array[x] = const_random!(u8);
         x+=1;
