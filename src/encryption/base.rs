@@ -17,9 +17,8 @@ pub fn get_valid_key(key: &str) -> Vec<u8> {
 }
 
 pub fn encrypt(contents: &[u8], key: &[u8]) -> anyhow::Result<Vec<u8>> {
-    let key = GenericArray::from_slice(key);
-    let nonce = Aes256Gcm::generate_nonce(&mut aead::OsRng);
-    // encryption
+    let key: &GenericArray<u8, _> = GenericArray::from_slice(key);
+    let nonce = GenericArray::from_slice(&[0u8; 12]); // You need to generate your nonce securely, here I'm using a zero nonce for simplicity    // encryption
     let cipher = Aes256Gcm::new(key);
     cipher
         .encrypt(&nonce, contents.as_ref())
@@ -28,25 +27,12 @@ pub fn encrypt(contents: &[u8], key: &[u8]) -> anyhow::Result<Vec<u8>> {
 
 pub fn decrypt(cipher_text: &[u8], key: &[u8]) -> anyhow::Result<Vec<u8>> {
     let key = GenericArray::from_slice(key);
-    let nonce = Aes256Gcm::generate_nonce(&mut aead::OsRng);
-    // decryption
+   // let nonce = Aes256Gcm::generate_nonce(&mut aead::OsRng);
+   let nonce = GenericArray::from_slice(&[0u8; 12]); // Same as above, using a zero nonce for simplicity    // decryption
     let cipher = Aes256Gcm::new(key);
     cipher.decrypt(&nonce, cipher_text).map_err(|e| anyhow!(e))
 }
-pub fn example() {
-    let data = "Yo yo if this works your lit homie";
-    let key = get_valid_key("Hello TEST key IHBGEJHFBWOHDFBJSHDBFJHASDBFJHASJHDBsspp>");
-    println!("Data to encrypt: \"{}\"", &data);
 
-    println!("Encrypting now");
-    let res = encrypt(data.as_bytes(), &key).unwrap();
-    println!("Encrypted response: {}", String::from_utf8(res.clone()).unwrap());
-
-    let decrypted_bytes = decrypt(&res, &key).unwrap();
-    let decrypted_string = std::str::from_utf8(&decrypted_bytes).unwrap();
-    println!("Decrypted response: {}", decrypted_string);
-}
-// TODO: change this to better rust
 const fn random() -> [u8 ; 32]{
     let mut random_array: [u8; 32] = [0; 32];    let mut x = 0;
     while x != 32  {
@@ -54,4 +40,17 @@ const fn random() -> [u8 ; 32]{
         x+=1;
     }
     random_array
+}
+
+#[test]
+pub fn example() {
+    let data = "Yo yo if this works your lit homie";
+    let key = get_valid_key("Hello TEST key IHBGEJHFBWOHDFBJSHDBFJHASDBFJHASJHDBsspp>");
+    println!("Data to encrypt: \"{}\"", &data);
+
+    println!("Encrypting now");
+    let res = encrypt(data.as_bytes(), &key).unwrap();
+    let decrypted_bytes = decrypt(&res, &key).unwrap();
+    let decrypted_string = std::str::from_utf8(&decrypted_bytes).unwrap();
+    println!("Decrypted response: {}", decrypted_string);
 }
