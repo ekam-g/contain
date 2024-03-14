@@ -1,7 +1,7 @@
 use std::io::{BufReader, Read, Seek, Write, SeekFrom};
 use std::path::PathBuf;
 use std::fs::{File, OpenOptions};
-
+use crate::encryption::base::RANDOM_BYTES;
 use super::base::{encrypt, decrypt};
 
 fn read_file(path: PathBuf) -> Result<(File, String), std::io::Error>{
@@ -16,9 +16,9 @@ fn read_file(path: PathBuf) -> Result<(File, String), std::io::Error>{
     Ok((file, data))
 }
 
-pub fn encrypt_file(path : PathBuf) -> Result<File, std::io::Error>{
+pub fn encrypt_file(path : PathBuf) -> anyhow::Result<File>{
     let (mut file,mut data) = read_file(path)?;
-    data = encrypt(data.as_bytes());
+    data = String::from_utf8(encrypt(data.as_bytes(), &RANDOM_BYTES.to_vec())?)?;
     file.seek(SeekFrom::Start(0)).unwrap();
     file.set_len(0)?;
     file.write_all(data.as_bytes()).unwrap();
@@ -26,9 +26,9 @@ pub fn encrypt_file(path : PathBuf) -> Result<File, std::io::Error>{
     Ok(file)
 }
 
-pub fn decrypt_file(path: PathBuf) -> Result<File, Box<dyn std::error::Error>> {
+pub fn decrypt_file(path: PathBuf) -> anyhow::Result<File> {
     let (mut file,data) = read_file(path)?;
-    let data = decrypt(&data)?;
+    let data =decrypt(data.as_bytes(), &RANDOM_BYTES.to_vec())?;
     file.seek(SeekFrom::Start(0)).unwrap();
     file.set_len(0)?;
     file.write_all(&data).unwrap();
