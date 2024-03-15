@@ -1,5 +1,9 @@
+use anyhow::anyhow;
 use serde_derive::Deserialize;
 use serde_derive::Serialize;
+
+use crate::time_manger::TimeManger;
+
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -39,19 +43,21 @@ pub struct WorldTimeApiResponse {
 /// # Errors
 ///
 /// Returns an error if the HTTP request fails or if the response status is not successful.
-fn fetch_world_time_sync() -> Result<WorldTimeApiResponse, Box<dyn std::error::Error>> {
-    let response = reqwest::blocking::get("http://worldtimeapi.org/api/ip")?;
-    if response.status().is_success() {
-        let body = response.text()?;
-        let parsed_response: WorldTimeApiResponse = serde_json::from_str(&body)?;
-        Ok(parsed_response)
-    } else {
-        Err("Request failed".into())
+impl TimeManger {
+    fn fetch_world_time_sync() -> anyhow::Result<WorldTimeApiResponse> {
+        let response = reqwest::blocking::get("http://worldtimeapi.org/api/ip")?;
+        if response.status().is_success() {
+            let body = response.text()?;
+            let parsed_response: WorldTimeApiResponse = serde_json::from_str(&body)?;
+            Ok(parsed_response)
+        } else {
+            Err(anyhow!("Failed With Bad Status Code Of {}", response.status()))
+        }
     }
 }
 #[test]
 fn example() {
-    match fetch_world_time_sync() {
+    match TimeManger::fetch_world_time_sync() {
         Ok(response) => println!("{:#?}", response),
         Err(err) => panic!("Error: {:?}", err),
     }
