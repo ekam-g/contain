@@ -30,18 +30,20 @@ pub struct WorldTimeApiResponse {
     #[serde(rename = "week_number")]
     pub week_number: i64,
 }
-
+/// Function to fetch world time from an external API synchronously.
+///
+/// This function makes an HTTP GET request to the WorldTimeAPI to fetch the current time.
+/// If the request is successful, it parses the JSON response into a `WorldTimeApiResponse` struct.
+/// Returns a `Result` containing either the parsed response or an error.
+///
+/// # Errors
+///
+/// Returns an error if the HTTP request fails or if the response status is not successful.
 fn fetch_world_time_sync() -> Result<WorldTimeApiResponse, Box<dyn std::error::Error>> {
-    // Make the HTTP GET request
     let response = reqwest::blocking::get("http://worldtimeapi.org/api/ip")?;
-
-    // Check if the request was successful
     if response.status().is_success() {
-        // Parse the JSON response
         let body = response.text()?;
         let parsed_response: WorldTimeApiResponse = serde_json::from_str(&body)?;
-
-        // Return the parsed response
         Ok(parsed_response)
     } else {
         Err("Request failed".into())
