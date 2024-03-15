@@ -1,23 +1,34 @@
-use serde::{Deserialize, Serialize};
-use reqwest;
+use serde_derive::Deserialize;
+use serde_derive::Serialize;
 
-#[derive(Debug, Serialize, Deserialize)]
-struct WorldTimeApiResponse {
-    abbreviation: String,
-    client_ip: String,
-    datetime: String,
-    day_of_week: u32,
-    day_of_year: u32,
-    dst: bool,
-    dst_from: String,
-    dst_offset: i32,
-    dst_until: String,
-    raw_offset: i32,
-    timezone: String,
-    unixtime: i64,
-    utc_datetime: String,
-    utc_offset: String,
-    week_number: u32,
+#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct WorldTimeApiResponse {
+    pub abbreviation: String,
+    #[serde(rename = "client_ip")]
+    pub client_ip: String,
+    pub datetime: String,
+    #[serde(rename = "day_of_week")]
+    pub day_of_week: i64,
+    #[serde(rename = "day_of_year")]
+    pub day_of_year: i64,
+    pub dst: bool,
+    #[serde(rename = "dst_from")]
+    pub dst_from: String,
+    #[serde(rename = "dst_offset")]
+    pub dst_offset: i64,
+    #[serde(rename = "dst_until")]
+    pub dst_until: String,
+    #[serde(rename = "raw_offset")]
+    pub raw_offset: i64,
+    pub timezone: String,
+    pub unixtime: i64,
+    #[serde(rename = "utc_datetime")]
+    pub utc_datetime: String,
+    #[serde(rename = "utc_offset")]
+    pub utc_offset: String,
+    #[serde(rename = "week_number")]
+    pub week_number: i64,
 }
 
 fn fetch_world_time_sync() -> Result<WorldTimeApiResponse, Box<dyn std::error::Error>> {
