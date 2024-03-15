@@ -51,6 +51,6 @@ fn fetch_world_time_sync() -> Result<WorldTimeApiResponse, Box<dyn std::error::E
 fn example() {
     match fetch_world_time_sync() {
         Ok(response) => println!("{:#?}", response),
-        Err(err) => eprintln!("Error: {:?}", err),
+        Err(err) => panic!("Error: {:?}", err),
     }
 }
