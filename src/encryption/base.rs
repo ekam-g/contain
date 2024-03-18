@@ -23,7 +23,7 @@ pub fn encrypt(contents: &[u8], key: &[u8]) -> anyhow::Result<Vec<u8>> {
     let nonce = GenericArray::from_slice(&NOICE); // You need to generate your nonce securely, here I'm using a zero nonce for simplicity    // encryption
     let cipher = Aes256Gcm::new(key);
     cipher
-        .encrypt(&nonce, contents.as_ref())
+        .encrypt(nonce, contents.as_ref())
         .map_err(|e| anyhow!(e))
 }
 /// Decrypts the given ciphertext using AES-GCM with the provided key.
@@ -32,7 +32,7 @@ pub fn decrypt(cipher_text: &[u8], key: &[u8]) -> anyhow::Result<Vec<u8>> {
     // let nonce = Aes256Gcm::generate_nonce(&mut aead::OsRng);
     let nonce = GenericArray::from_slice(&NOICE); // Same as above, using a zero nonce for simplicity    // decryption
     let cipher = Aes256Gcm::new(key);
-    cipher.decrypt(&nonce, cipher_text).map_err(|e| anyhow!(e))
+    cipher.decrypt(nonce, cipher_text).map_err(|e| anyhow!(e))
 }
 /// Generates a random byte array of the specified length using compile-time randomness.
 const fn random_bytes<const N: usize>() -> [u8; N] {

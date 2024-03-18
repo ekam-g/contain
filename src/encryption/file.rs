@@ -1,9 +1,9 @@
 use super::base::{decrypt, encrypt};
 use crate::encryption::base::KEY;
-use std::fs::{File, OpenOptions};
+use std::fs::{OpenOptions};
 use std::io::{BufReader, Read, Seek, SeekFrom, Write};
 use std::path::PathBuf;
-use serial_test::serial;
+
 
 struct EncryptedFile {
     path : PathBuf
@@ -60,7 +60,7 @@ impl EncryptedFile {
 const  TEST_VALUE: &str = "This works very well";
 
 #[test]
-#[serial(file)]
+#[serial_test::serial(file)]
 pub fn example() {
     let mut path = PathBuf::new();
     path.push("src");
@@ -79,7 +79,7 @@ pub fn example() {
 }
 
 #[test]
-#[serial(file)]
+#[serial_test::serial(file)]
 pub fn file_test() {
     let mut path = PathBuf::new();
     path.push("src");
