@@ -4,6 +4,7 @@ use std::fs::{OpenOptions};
 use std::io::{BufReader, Read, Seek, SeekFrom, Write};
 use std::path::PathBuf;
 
+#[derive(Debug, Default, Clone, PartialEq, Eq,)]
 
 struct EncryptedFile {
     path : PathBuf
