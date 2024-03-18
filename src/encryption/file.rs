@@ -56,6 +56,9 @@ impl EncryptedFile {
         home_dir
     }
 }
+
+const  TEST_VALUE: &str = "This works very well";
+
 #[test]
 #[serial(file)]
 pub fn example() {
@@ -65,13 +68,14 @@ pub fn example() {
     path.push("test");
     path.set_extension("txt");
     let mut file_check = EncryptedFile::new(path).unwrap();
+    file_check.write_file(TEST_VALUE.to_owned().into_bytes()).unwrap();
     file_check.encrypt_file().unwrap();
     let data: Vec<u8> = file_check.read_file().unwrap();
     let println_data = String::from_utf8_lossy(&data);
     println!("{}", println_data); 
     file_check.decrypt_file().unwrap();
-    let data: Vec<u8> = file_check.read_file().unwrap();
-    println!("{}", String::from_utf8_lossy(&data));
+    let data = String::from_utf8(file_check.read_file().unwrap()).unwrap();
+    assert!(data == TEST_VALUE)
 }
 
 #[test]
@@ -83,8 +87,8 @@ pub fn file_test() {
     path.push("test");
     path.set_extension("txt");
     let mut file_check = EncryptedFile::new(path).unwrap();
-    file_check.write_file("This is test data".to_owned().into_bytes()).unwrap();
-    file_check.write_file("This is test data".to_owned().into_bytes()).unwrap();
+    file_check.write_file(TEST_VALUE.to_owned().into_bytes()).unwrap();
+    file_check.write_file(TEST_VALUE.to_owned().into_bytes()).unwrap();
     let data = String::from_utf8(file_check.read_file().unwrap()).unwrap();
-    assert!( data == "This is test data".to_owned());
+    assert!(data == TEST_VALUE)
 }
