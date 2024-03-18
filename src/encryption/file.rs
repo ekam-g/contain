@@ -3,45 +3,44 @@ use crate::encryption::base::KEY;
 use std::fs::{File, OpenOptions};
 use std::io::{BufReader, Read, Seek, SeekFrom, Write};
 use std::path::PathBuf;
+use serial_test::serial;
 
 struct EncryptedFile {
-    m_file : File
+    path : PathBuf
 }
 impl EncryptedFile {
     pub fn new(path: PathBuf) -> anyhow::Result<Self> {
-        Self {
-            m_file : Self::read_file(path)?,
-        }
+        Ok(Self {
+            path,
+        })
     }
-    fn read_file(path: PathBuf) -> Result<(File, Vec<u8>), std::io::Error> {
-        let file = OpenOptions::new().read(true).write(true).open(path)?;
-
-        let mut buf_reader = BufReader::new(&file);
+    pub fn read_file(&self) -> Result<Vec<u8>, std::io::Error> {
+        let file = OpenOptions::new().read(true).write(true).open(&self.path)?;
+        let mut buf_reader = BufReader::new(file);
         let mut data: Vec<u8> = Vec::new();
         buf_reader.read_to_end(&mut data)?;
-
-        Ok((file, data))
+        Ok(data)
     }
-
-    pub fn encrypt_file(path: PathBuf) -> anyhow::Result<File> {
-        let (mut file, data) = EncryptedFile::read_file(path)?;
-        let encrypted_data = encrypt(&data, KEY.as_ref())?;
-        drop(data);
-        file.seek(SeekFrom::Start(0)).unwrap();
-        file.set_len(0)?;
-        file.write_all(&encrypted_data).unwrap();
-        file.flush()?;
-        Ok(file)
-    }
-
-    pub fn decrypt_file(path: PathBuf) -> anyhow::Result<File> {
-        let (mut file, data) = EncryptedFile::read_file(path)?;
-        let data = decrypt(&data, KEY.as_ref())?;
+    pub fn write_file(&self, data: Vec<u8>) -> anyhow::Result<()> {
+        let mut file = OpenOptions::new().read(true).write(true).open(&self.path)?;
         file.seek(SeekFrom::Start(0)).unwrap();
         file.set_len(0)?;
         file.write_all(&data).unwrap();
         file.flush()?;
-        Ok(file)
+        Ok(())
+    }
+
+    pub fn encrypt_file(&self) -> anyhow::Result<()> {
+        let data= self.read_file()?;
+        let data = encrypt(&data, KEY.as_ref())?;
+        self.write_file(data)
+    }
+    
+
+    pub fn decrypt_file(&mut self) -> anyhow::Result<()> {
+        let  data: Vec<u8> = self.read_file()?;
+        let data = decrypt(&data, KEY.as_ref())?;
+        self.write_file(data)
     }
 
     pub fn file_location() -> PathBuf {
@@ -58,15 +57,34 @@ impl EncryptedFile {
     }
 }
 #[test]
+#[serial(file)]
 pub fn example() {
     let mut path = PathBuf::new();
     path.push("src");
     path.push("encryption");
     path.push("test");
     path.set_extension("txt");
-    encrypt_file(path.clone()).unwrap();
-    let (_, _) = read_file(path.clone()).unwrap();
-    decrypt_file(path.clone()).unwrap();
-    let (_, data) = read_file(path).unwrap();
+    let mut file_check = EncryptedFile::new(path).unwrap();
+    file_check.encrypt_file().unwrap();
+    let data: Vec<u8> = file_check.read_file().unwrap();
+    let println_data = String::from_utf8_lossy(&data);
+    println!("{}", println_data); 
+    file_check.decrypt_file().unwrap();
+    let data: Vec<u8> = file_check.read_file().unwrap();
     println!("{}", String::from_utf8_lossy(&data));
+}
+
+#[test]
+#[serial(file)]
+pub fn file_test() {
+    let mut path = PathBuf::new();
+    path.push("src");
+    path.push("encryption");
+    path.push("test");
+    path.set_extension("txt");
+    let mut file_check = EncryptedFile::new(path).unwrap();
+    file_check.write_file("This is test data".to_owned().into_bytes()).unwrap();
+    file_check.write_file("This is test data".to_owned().into_bytes()).unwrap();
+    let data = String::from_utf8(file_check.read_file().unwrap()).unwrap();
+    assert!( data == "This is test data".to_owned());
 }
