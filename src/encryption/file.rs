@@ -1,6 +1,6 @@
 use super::base::{decrypt, encrypt};
 use crate::encryption::base::KEY;
-use std::fs::{OpenOptions};
+use std::fs::OpenOptions;
 use std::io::{BufReader, Read, Seek, SeekFrom, Write};
 use std::path::PathBuf;
 
