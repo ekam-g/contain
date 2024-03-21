@@ -5,5 +5,5 @@ pub mod encryption;
 slint::include_modules!();
 fn main() {
     
-    Home::new().unwrap().run().unwrap();
+    MyApp::new().unwrap().run().unwrap();
 }
