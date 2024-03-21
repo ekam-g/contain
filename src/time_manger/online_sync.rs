@@ -45,7 +45,7 @@ pub struct WorldTimeApiResponse {
 /// Returns an error if the HTTP request fails or if the response status is not successful.
 impl TimeManger {
     fn fetch_world_time_sync() -> anyhow::Result<WorldTimeApiResponse> {
-        let response = reqwest::blocking::get("http://worldtimeapi.org/api/ip")?;
+        let response = reqwest::blocking::get("https://worldtimeapi.org/api/timezone/Europe/London")?;
         if response.status().is_success() {
             let body = response.text()?;
             let parsed_response: WorldTimeApiResponse = serde_json::from_str(&body)?;

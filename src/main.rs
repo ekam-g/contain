@@ -2,6 +2,7 @@
 pub mod time_manger;
 pub mod encryption;
 
+slint::include_modules!();
 fn main() {
-    todo!()
+    HelloWorld::new().unwrap().run().unwrap();
 }
