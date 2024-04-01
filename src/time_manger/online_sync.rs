@@ -55,7 +55,7 @@ impl TimeManger {
         }
     }
     pub fn update_time(&mut self) -> anyhow::Result<()> {
-        self.current_unix_time = TimeManger::fetch_world_time_sync()?.unixtime;
+        self.current_unix_time = Some(TimeManger::fetch_world_time_sync()?.unixtime);
         Ok(())
     }
 }
