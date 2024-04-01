@@ -37,10 +37,12 @@ impl EncryptedFile {
         self.write_file(data)
     }
     
-
-    pub fn decrypt_file(&mut self) -> anyhow::Result<()> {
+    pub fn decrypt_read_file(&self) -> anyhow::Result<Vec<u8>> {
         let  data: Vec<u8> = self.read_file()?;
-        let data = decrypt(&data, KEY.as_ref())?;
+        decrypt(&data, KEY.as_ref())
+    }
+    pub fn decrypt_file(&mut self) -> anyhow::Result<()> {
+        let  data: Vec<u8> = self.decrypt_read_file()?;
         self.write_file(data)
     }
 
