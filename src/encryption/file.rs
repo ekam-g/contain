@@ -6,14 +6,14 @@ use std::path::PathBuf;
 
 #[derive(Debug, Default, Clone, PartialEq, Eq,)]
 
-struct EncryptedFile {
+pub struct EncryptedFile {
     path : PathBuf
 }
 impl EncryptedFile {
-    pub fn new(path: PathBuf) -> anyhow::Result<Self> {
-        Ok(Self {
-            path,
-        })
+    pub fn new(path: PathBuf) -> Self  {
+        Self {
+            path : path,
+        }
     }
     pub fn read_file(&self) -> Result<Vec<u8>, std::io::Error> {
         let file = OpenOptions::new().read(true).write(true).open(&self.path)?;
@@ -70,7 +70,7 @@ pub fn example() {
     path.push("encryption");
     path.push("test");
     path.set_extension("txt");
-    let mut file_check = EncryptedFile::new(path).unwrap();
+    let mut file_check = EncryptedFile::new(path);
     file_check.write_file(TEST_VALUE.to_owned().into_bytes()).unwrap();
     file_check.encrypt_file().unwrap();
     let data: Vec<u8> = file_check.read_file().unwrap();
@@ -89,7 +89,7 @@ pub fn file_test() {
     path.push("encryption");
     path.push("test");
     path.set_extension("txt");
-    let mut file_check = EncryptedFile::new(path).unwrap();
+    let mut file_check = EncryptedFile::new(path);
     file_check.write_file(TEST_VALUE.to_owned().into_bytes()).unwrap();
     file_check.write_file(TEST_VALUE.to_owned().into_bytes()).unwrap();
     let data = String::from_utf8(file_check.read_file().unwrap()).unwrap();
