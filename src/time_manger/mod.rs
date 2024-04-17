@@ -2,7 +2,7 @@ use std::{path::PathBuf, thread::current};
 
 use crate::encryption::file::EncryptedFile;
 
-use self::time_file_json::TimeFile;
+use self::time_file_json::{TimeFile, TimeFileJson};
 
 pub mod online_sync;
 pub mod time_file;
@@ -27,7 +27,7 @@ impl TimeManger {
             time_file_location : EncryptedFile::file_location(),
         };
         if time.get_time_file().is_err() {
-            
+            time.create_time_file(TimeFileJson{ time_files: vec![] })?;
         }
         time.update_time()
     }
