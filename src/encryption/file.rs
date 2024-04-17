@@ -15,6 +15,9 @@ impl EncryptedFile {
             path : path,
         }
     }
+    pub fn create_file(&self) -> Result<std::fs::File, std::io::Error>  {
+        std::fs::File::create(&self.path)
+    }
     pub fn read_file(&self) -> Result<Vec<u8>, std::io::Error> {
         let file = OpenOptions::new().read(true).write(true).open(&self.path)?;
         let mut buf_reader = BufReader::new(file);
