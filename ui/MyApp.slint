@@ -7,8 +7,12 @@ export component MyApp inherits Window {
     in-out property <string> info: "empty";
     callback request-open-file();
     VerticalBox {
-        Text {
-            text: "Files \{root.info}";
+
+        Rectangle {
+            border-width: 1px;
+            border-color:gray;
+            border-radius: 12px;
+
         }
 
         HorizontalLayout {
@@ -16,13 +20,13 @@ export component MyApp inherits Window {
             height: 12%;
             spacing: 10px;
             Rectangle {
-                border-width: 2px;
+                border-width: 1px;
                 border-color: black;
                 border-radius: 12px;
                 Button {
                     width: 100%;
                     height: 100%;
-                    text: "Refresh";
+                    text: "Time Refresh";
                     clicked => {
                         //todo
                     }
@@ -30,7 +34,7 @@ export component MyApp inherits Window {
             }
 
             Rectangle {
-                border-width: 2px;
+                border-width: 1px;
                 border-color: black;
                 border-radius: 12px;
                 Button {
