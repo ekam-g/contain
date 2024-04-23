@@ -7,13 +7,30 @@ export component MyApp inherits Window {
     in-out property <string> info: "empty";
     callback request-open-file();
     VerticalBox {
-
         Rectangle {
             border-width: 1px;
             border-color:gray;
             border-radius: 12px;
             ListView {
-                
+                for data in [
+                    { text: "Blue", color: #0000ff, bg: #eeeeee},
+                    { text: "Red", color: #ff0000, bg: #eeeeee},
+                    { text: "Green", color: #00ff00, bg: #eeeeee},
+                    { text: "Yellow", color: #ffff00, bg: #222222 },
+                    { text: "Black", color: #000000, bg: #eeeeee },
+                    { text: "White", color: #ffffff, bg: #222222 },
+                    { text: "Magenta", color: #ff00ff, bg: #eeeeee },
+                    { text: "Cyan", color: #00ffff, bg: #222222 },
+                ] : Rectangle {
+                    height: 200px;
+                    background: data.bg;
+                    width: parent.width;
+                    Text {
+                        x: 0;
+                        text: data.text;
+                        color: data.color;
+                    }
+                }
             }
 
         }
