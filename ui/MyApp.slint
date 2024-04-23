@@ -3,16 +3,29 @@ import { Button, VerticalBox } from "std-widgets.slint";
 export component MyApp inherits Window {
     preferred-width: 600px;
     preferred-height: 600px;
-    in-out property<string> info: "empty";
+    in-out property <string> info: "empty";
     callback request-open-file();
     VerticalBox {
         Text {
             text: "Files \{root.info}";
         }
-        Button {
-            text: "Get File";
-            clicked => {
-                root.request-open-file();
+
+        HorizontalLayout {
+            padding: 10px;
+            height: 12%;
+            spacing: 10px;
+            Button {
+                text: "Refresh";
+                clicked => {
+                    //todo
+                }
+            }
+
+            Button {
+                text: "Get File";
+                clicked => {
+                    root.request-open-file();
+                }
             }
         }
     }
