@@ -15,17 +15,31 @@ export component MyApp inherits Window {
             padding: 10px;
             height: 12%;
             spacing: 10px;
-            Button {
-                text: "Refresh";
-                clicked => {
-                    //todo
+            Rectangle {
+                border-width: 2px;
+                border-color: black;
+                border-radius: 12px;
+                Button {
+                    width: 100%;
+                    height: 100%;
+                    text: "Refresh";
+                    clicked => {
+                        //todo
+                    }
                 }
             }
 
-            Button {
-                text: "Get File";
-                clicked => {
-                    root.request-open-file();
+            Rectangle {
+                border-width: 2px;
+                border-color: black;
+                border-radius: 12px;
+                Button {
+                    width: 100%;
+                    height: 100%;
+                    text: "Get File";
+                    clicked => {
+                        root.request-open-file();
+                    }
                 }
             }
         }
