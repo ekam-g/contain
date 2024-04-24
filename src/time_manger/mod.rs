@@ -1,4 +1,4 @@
-use std::{path::PathBuf, thread::current};
+use std::path::PathBuf;
 
 use crate::encryption::file::EncryptedFile;
 
@@ -20,7 +20,7 @@ pub struct TimeManger{
 }
 
 impl TimeManger {
-    pub fn new() -> anyhow::Result<()> {
+    pub fn new() -> anyhow::Result<TimeManger> {
         let mut time = TimeManger{
             time_files : vec![],
             current_unix_time : None,
@@ -29,6 +29,7 @@ impl TimeManger {
         if time.get_time_file().is_err() {
             time.create_time_file(TimeFileJson{ time_files: vec![] })?;
         }
-        time.update_time()
+        time.update_time()?;
+        Ok(time)
     }
 }
