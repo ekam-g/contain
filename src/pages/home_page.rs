@@ -1,17 +1,20 @@
-use rfd::FileDialog;
-use slint::{ComponentHandle, Model};
+use std::rc::Rc;
 
-use crate::time_manger::TimeManger;
+use rfd::FileDialog;
+use slint::{ComponentHandle, Model, ModelRc, SharedString, VecModel};
+
+use crate::time_manger::{time_file, TimeManger};
 
 slint::include_modules!();
 pub fn run() -> Result<(), slint::PlatformError> {
     let ui = MyApp::new()?;
     //Todo improve error handing
     let time_manger = TimeManger::new().unwrap();
-    let mut old_time_data = ui.get_time_data();
-    time_manger.time_files.iter().for_each(time_file| {
-        old_time_data.set_row_data(index, time_file.path.into());
+    let mut time_data: Rc<VecModel<(SharedString, i32)>> = Rc::new(VecModel::default()); 
+    time_manger.time_files.iter().for_each(|data| {
+        time_data.push((data.path.clone().into(), data.time as i32))
     });
+    ui.set_time_data(ModelRc::from(time_data));
     ui.on_request_open_file({
         let ui_handle = ui.as_weak();        
         move || {

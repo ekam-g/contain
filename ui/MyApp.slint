@@ -1,4 +1,4 @@
-import { Button, VerticalBox, ListView } from "std-widgets.slint";
+import { Button, VerticalBox, ListView, ProgressIndicator } from "std-widgets.slint";
 
 
 export component MyApp inherits Window {
@@ -6,15 +6,25 @@ export component MyApp inherits Window {
     preferred-height: 600px;
     title: "Home - Contain";
     in-out property <string> info: "empty";
-    in-out property<[{path: string, time: int}]> time_data;
+    in-out property <[{path: string, time: int}]> time_data;
     callback request-open-file();
     VerticalBox {
+        Rectangle {
+            height: 78%;
+            if time_data.length == 0:
+            ProgressIndicator {
+                indeterminate: true;
+                width: 80%;
+                height: 20px;
+            }
+            if time_data.length != 0:
         ListView {
-            for data in time_data: Rectangle {
-                height: 50px;
-                width: parent.width;
-                Text {
-                    text: data.path;
+                for data in time_data: Rectangle {
+                    height: 50px;
+                    width: parent.width;
+                    Text {
+                        text: data.path;
+                    }
                 }
             }
         }
