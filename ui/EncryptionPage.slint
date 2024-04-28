@@ -1,13 +1,12 @@
 import { Button, VerticalBox, ListView, ProgressIndicator } from "std-widgets.slint";
 
 
-export component MyApp inherits Window {
+export component EncryptionPage inherits Window {
     preferred-width: 600px;
     preferred-height: 600px;
-    title: "Home - Contain";
+    title: "Encryption File - Contain";
     in-out property <[{path: string, time: int}]> time_data;
     callback request-open-file();
-    callback request-refresh();
     VerticalBox {
         Rectangle {
             height: 78%;
@@ -42,7 +41,7 @@ export component MyApp inherits Window {
                     height: 100%;
                     text: "Time Refresh";
                     clicked => {
-                        root.request-refresh();
+                        //todo
                     }
                 }
             }
