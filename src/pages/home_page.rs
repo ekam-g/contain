@@ -16,7 +16,7 @@ pub fn run() -> Result<(), slint::PlatformError> {
     });
     ui.set_time_data(ModelRc::from(time_data));
     ui.on_request_open_file({
-        let ui_handle = ui.as_weak();        
+        let ui_handle = ui.as_weak();   
         move || {
             let ui = ui_handle.unwrap();
             let files = FileDialog::new()
@@ -24,7 +24,6 @@ pub fn run() -> Result<(), slint::PlatformError> {
                 .add_filter("rust", &["rs", "toml"])
                 .set_directory("/")
                 .pick_file();
-            ui.set_info(files.unwrap().as_path().to_str().unwrap().into());
            }
     });
     ui.run()
