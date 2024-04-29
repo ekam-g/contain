@@ -9,8 +9,8 @@ slint::include_modules!();
 pub fn run() -> Result<(), slint::PlatformError> {
     let ui = MyApp::new()?;
     //Todo improve error handing
-    let mut time_manger = Arc::new(Mutex::new(TimeManger::new().unwrap()));
-    let mut time_data: Rc<VecModel<(SharedString, i32)>> = Rc::new(VecModel::default()); 
+    let time_manger = Arc::new(Mutex::new(TimeManger::new().unwrap()));
+    let time_data: Rc<VecModel<(SharedString, i32)>> = Rc::new(VecModel::default()); 
     time_manger.lock().unwrap().time_files.iter().for_each(|data| {
         time_data.push((data.path.clone().into(), data.time as i32))
     });

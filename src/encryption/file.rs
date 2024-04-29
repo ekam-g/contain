@@ -25,7 +25,16 @@ impl EncryptedFile {
         buf_reader.read_to_end(&mut data)?;
         Ok(data)
     }
-    pub fn write_file(&self, data: Vec<u8>) -> anyhow::Result<()> {
+    pub fn encrypt_write_file(&self, data: Vec<u8>) -> anyhow::Result<()> {
+        let mut file = OpenOptions::new().read(true).write(true).open(&self.path)?;
+        file.seek(SeekFrom::Start(0)).unwrap();
+        file.set_len(0)?;
+        let data = encrypt(&data, KEY.as_ref())?;
+        file.write_all(&data).unwrap();
+        file.flush()?;
+        Ok(())
+    }
+    fn write_file(&self, data: Vec<u8>) -> anyhow::Result<()> {
         let mut file = OpenOptions::new().read(true).write(true).open(&self.path)?;
         file.seek(SeekFrom::Start(0)).unwrap();
         file.set_len(0)?;

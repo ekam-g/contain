@@ -8,12 +8,7 @@ pub mod online_sync;
 pub mod time_file;
 pub mod time_file_json;
 #[derive(Debug, Default, Clone, PartialEq, Eq,)]
-pub struct TimeManger{
-    /*
-    current_time
-    containers_time
-    
-    */     
+pub struct TimeManger{  
     pub time_files : Vec<TimeFile>,
     pub current_unix_time : Option<u128>,
     pub time_file_location : PathBuf

@@ -15,7 +15,7 @@ impl TimeManger {
     pub fn create_time_file(&self, data : TimeFileJson) -> anyhow::Result<()> {
         let efile: EncryptedFile = EncryptedFile::new(self.time_file_location.to_path_buf());
         efile.create_file()?;
-        efile.write_file(serde_json::to_vec(&data)?)?;
+        efile.encrypt_write_file(serde_json::to_vec(&data)?)?;
         Ok(())
     }
 }
