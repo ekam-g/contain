@@ -1,4 +1,4 @@
-use std::{rc::Rc, sync::{Arc, Mutex}};
+use std::{rc::Rc, sync::{Arc, Mutex}, thread};
 
 use rfd::FileDialog;
 use slint::{ComponentHandle, Model, ModelRc, SharedString, VecModel};
@@ -27,10 +27,9 @@ pub fn run() -> Result<(), slint::PlatformError> {
            }
     });
     ui.on_request_refresh({
-        let ui_handle = ui.as_weak();   
         let time_manger = Arc::clone(&time_manger);
         move || {
-            let ui = ui_handle.unwrap();
+            //todo finish this
             time_manger.lock().unwrap().update_time().unwrap();
            }
     });
