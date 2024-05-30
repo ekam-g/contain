@@ -4,22 +4,31 @@ import { Button, VerticalBox, ListView, ProgressIndicator, HorizontalBox } from 
 export component EncryptionPage inherits Window {
     preferred-width: 600px;
     preferred-height: 600px;
-    title: "Encryption File - Contain";
-    in-out property <[{path: string, time: int}]> time_data;
+    in-out property <{path: string, time: int}> time_data;
+    title: "Encrypt " + time_data.path + " - Contain";
     callback request-open-file();
     VerticalBox {
         Rectangle {
-            height: 78%;
+            border-width: 1px;
+            border-color: black;
+            border-radius: 12px;
+            height: 10%;
             width: 80%;
-            VerticalBox {
-                //todo
+            HorizontalBox {
+                Text {
+                    text: "Minutes";
+                }
+                TextInput {
+                    input-type : InputType.number;
+                    text: ;
+                }
             }   
         }
 
         HorizontalLayout {
             padding: 10px;
             height: 12%;
-            spacing: 10px;
+            spacing: 15px;
             Rectangle {
                 border-width: 1px;
                 border-color: black;

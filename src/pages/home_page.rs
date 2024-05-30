@@ -30,6 +30,7 @@ pub fn run() -> Result<(), slint::PlatformError> {
         let time_manger = Arc::clone(&time_manger);
         move || {
             //todo finish this
+            
             time_manger.lock().unwrap().update_time().unwrap();
            }
     });
