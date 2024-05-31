@@ -55,7 +55,6 @@ const fn random_noice() -> [u8; 12] {
     random_bytes()
 }
 
-
 #[test]
 pub fn example() {
     let data = "Yo yo if this works your lit homie";

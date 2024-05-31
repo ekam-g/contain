@@ -4,7 +4,6 @@ use serde_derive::Serialize;
 
 use crate::time_manger::TimeManger;
 
-
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct WorldTimeApiResponse {
@@ -45,13 +44,17 @@ pub struct WorldTimeApiResponse {
 /// Returns an error if the HTTP request fails or if the response status is not successful.
 impl TimeManger {
     fn fetch_world_time_sync() -> anyhow::Result<WorldTimeApiResponse> {
-        let response = reqwest::blocking::get("https://worldtimeapi.org/api/timezone/Europe/London")?;
+        let response =
+            reqwest::blocking::get("https://worldtimeapi.org/api/timezone/Europe/London")?;
         if response.status().is_success() {
             let body = response.text()?;
             let parsed_response: WorldTimeApiResponse = serde_json::from_str(&body)?;
             Ok(parsed_response)
         } else {
-            Err(anyhow!("Failed With Bad Status Code Of {}", response.status()))
+            Err(anyhow!(
+                "Failed With Bad Status Code Of {}",
+                response.status()
+            ))
         }
     }
     pub fn update_time(&mut self) -> anyhow::Result<()> {

@@ -4,18 +4,16 @@ use std::fs::OpenOptions;
 use std::io::{BufReader, Read, Seek, SeekFrom, Write};
 use std::path::PathBuf;
 
-#[derive(Debug, Default, Clone, PartialEq, Eq,)]
+#[derive(Debug, Default, Clone, PartialEq, Eq)]
 
 pub struct EncryptedFile {
-    path : PathBuf
+    path: PathBuf,
 }
 impl EncryptedFile {
-    pub fn new(path: PathBuf) -> Self  {
-        Self {
-            path : path,
-        }
+    pub fn new(path: PathBuf) -> Self {
+        Self { path: path }
     }
-    pub fn create_file(&self) -> Result<std::fs::File, std::io::Error>  {
+    pub fn create_file(&self) -> Result<std::fs::File, std::io::Error> {
         std::fs::File::create(&self.path)
     }
     pub fn read_file(&self) -> Result<Vec<u8>, std::io::Error> {
@@ -44,17 +42,17 @@ impl EncryptedFile {
     }
 
     pub fn encrypt_file(&self) -> anyhow::Result<()> {
-        let data= self.read_file()?;
+        let data = self.read_file()?;
         let data = encrypt(&data, KEY.as_ref())?;
         self.write_file(data)
     }
-    
+
     pub fn decrypt_read_file(&self) -> anyhow::Result<Vec<u8>> {
-        let  data: Vec<u8> = self.read_file()?;
+        let data: Vec<u8> = self.read_file()?;
         decrypt(&data, KEY.as_ref())
     }
     pub fn decrypt_file(&mut self) -> anyhow::Result<()> {
-        let  data: Vec<u8> = self.decrypt_read_file()?;
+        let data: Vec<u8> = self.decrypt_read_file()?;
         self.write_file(data)
     }
 
@@ -72,7 +70,7 @@ impl EncryptedFile {
     }
 }
 
-const  TEST_VALUE: &str = "This works very well";
+const TEST_VALUE: &str = "This works very well";
 
 #[test]
 #[serial_test::serial(file)]
@@ -83,11 +81,13 @@ pub fn example() {
     path.push("test");
     path.set_extension("txt");
     let mut file_check = EncryptedFile::new(path);
-    file_check.write_file(TEST_VALUE.to_owned().into_bytes()).unwrap();
+    file_check
+        .write_file(TEST_VALUE.to_owned().into_bytes())
+        .unwrap();
     file_check.encrypt_file().unwrap();
     let data: Vec<u8> = file_check.read_file().unwrap();
     let println_data = String::from_utf8_lossy(&data);
-    println!("{}", println_data); 
+    println!("{}", println_data);
     file_check.decrypt_file().unwrap();
     let data = String::from_utf8(file_check.read_file().unwrap()).unwrap();
     assert!(data == TEST_VALUE)
@@ -102,8 +102,12 @@ pub fn file_test() {
     path.push("test");
     path.set_extension("txt");
     let mut file_check = EncryptedFile::new(path);
-    file_check.write_file(TEST_VALUE.to_owned().into_bytes()).unwrap();
-    file_check.write_file(TEST_VALUE.to_owned().into_bytes()).unwrap();
+    file_check
+        .write_file(TEST_VALUE.to_owned().into_bytes())
+        .unwrap();
+    file_check
+        .write_file(TEST_VALUE.to_owned().into_bytes())
+        .unwrap();
     let data = String::from_utf8(file_check.read_file().unwrap()).unwrap();
     assert!(data == TEST_VALUE)
 }

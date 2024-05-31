@@ -1,7 +1,7 @@
 // #![feature(const_for)]
-pub mod time_manger;
 pub mod encryption;
 pub mod pages;
+pub mod time_manger;
 use pages::home_page;
 use slint::ComponentHandle;
 
