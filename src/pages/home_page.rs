@@ -1,11 +1,80 @@
 use std::{rc::Rc, sync::{Arc, Mutex}, thread};
+use slint::slint;
 
 use rfd::FileDialog;
 use slint::{ComponentHandle, Model, ModelRc, SharedString, VecModel};
 
 use crate::time_manger::{self, time_file, TimeManger};
 
-slint::include_modules!();
+use super::encryption_page;
+slint! {
+    import { Button, VerticalBox, ListView, ProgressIndicator } from "std-widgets.slint";
+
+
+export component MyApp inherits Window {
+    preferred-width: 600px;
+    preferred-height: 600px;
+    title: "Home - Contain";
+    in-out property <[{path: string, time: int}]> time_data;
+    callback request-open-file();
+    callback request-refresh();
+    VerticalBox {
+        Rectangle {
+            height: 78%;
+            if time_data.length == 0:
+            ProgressIndicator {
+                indeterminate: true;
+                width: 80%;
+                height: 20px;
+            }
+            if time_data.length != 0:
+        ListView {
+                for data in time_data: Rectangle {
+                    height: 50px;
+                    width: parent.width;
+                    Text {
+                        text: data.path;
+                    }
+                }
+            }
+        }
+
+        HorizontalLayout {
+            padding: 10px;
+            height: 12%;
+            spacing: 10px;
+            Rectangle {
+                border-width: 1px;
+                border-color: black;
+                border-radius: 12px;
+                Button {
+                    width: 100%;
+                    height: 100%;
+                    text: "Time Refresh";
+                    clicked => {
+                        root.request-refresh();
+                    }
+                }
+            }
+
+            Rectangle {
+                border-width: 1px;
+                border-color: black;
+                border-radius: 12px;
+                Button {
+                    width: 100%;
+                    height: 100%;
+                    text: "Get File";
+                    clicked => {
+                        root.request-open-file();
+                    }
+                }
+            }
+        }
+    }
+}
+
+}
 pub fn run() -> Result<(), slint::PlatformError> {
     let ui = MyApp::new()?;
     //Todo improve error handing
@@ -29,9 +98,10 @@ pub fn run() -> Result<(), slint::PlatformError> {
     ui.on_request_refresh({
         let time_manger = Arc::clone(&time_manger);
         move || {
-            //todo finish this
+            //todo finish this with https://releases.slint.dev/1.6.0/docs/rust/slint/fn.invoke_from_event_loop
             
             time_manger.lock().unwrap().update_time().unwrap();
+            encryption_page::run().unwrap();
            }
     });
     ui.run()
