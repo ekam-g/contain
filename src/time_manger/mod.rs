@@ -24,7 +24,17 @@ impl TimeManger {
         if time.get_time_file().is_err() {
             time.create_time_file(TimeFileJson { time_files: vec![] })?;
         }
-        time.update_time()?;
+        Ok(time)
+    }
+    pub fn path_new(path: PathBuf) -> anyhow::Result<TimeManger> {
+        let mut time = TimeManger {
+            time_files: vec![],
+            current_unix_time: None,
+            time_file_location: path,
+        };
+        if time.get_time_file().is_err() {
+            time.create_time_file(TimeFileJson { time_files: vec![] })?;
+        }
         Ok(time)
     }
 }

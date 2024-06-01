@@ -1,5 +1,6 @@
 use super::base::{decrypt, encrypt};
 use crate::encryption::base::KEY;
+use crate::TEST_VALUE;
 use std::fs::OpenOptions;
 use std::io::{BufReader, Read, Seek, SeekFrom, Write};
 use std::path::PathBuf;
@@ -69,8 +70,6 @@ impl EncryptedFile {
         home_dir
     }
 }
-
-const TEST_VALUE: &str = "This works very well";
 
 #[test]
 #[serial_test::serial(file)]
