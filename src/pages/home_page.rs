@@ -93,22 +93,22 @@ pub fn run() -> Result<(), slint::PlatformError> {
     ui.set_time_data(ModelRc::from(time_data));
     ui.on_request_open_file({
         let ui_handle = ui.as_weak();
+        let time_manger: Arc<Mutex<TimeManger>> = Arc::clone(&time_manger);
         move || {
             let ui = ui_handle.unwrap();
-            let files = FileDialog::new()
-                .add_filter("text", &["txt", "rs"])
-                .add_filter("rust", &["rs", "toml"])
-                .set_directory("/")
-                .pick_file();
+            let file = FileDialog::new().pick_file();
+            if let Some(file_checked) = file {
+                encryption_page::run(file_checked, &time_manger).unwrap();
+            }
         }
     });
     ui.on_request_refresh({
-        let time_manger = Arc::clone(&time_manger);
+        let time_manger: Arc<Mutex<TimeManger>> = Arc::clone(&time_manger);
         move || {
             //todo finish this with https://releases.slint.dev/1.6.0/docs/rust/slint/fn.invoke_from_event_loop
-
-            time_manger.lock().unwrap().update_time().unwrap();
-            encryption_page::run().unwrap();
+            let mut time = time_manger.lock().unwrap();
+            time.update_time().unwrap();
+            time.decrypt_old_files().unwrap();
         }
     });
     ui.run()

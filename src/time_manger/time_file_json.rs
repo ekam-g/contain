@@ -10,7 +10,6 @@ pub struct TimeFileJson {
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct TimeFile {
-    pub time: i64,
+    pub time: u128,
     pub path: String,
-    pub nickname: String,
 }
