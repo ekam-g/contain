@@ -1,6 +1,5 @@
 use super::base::{decrypt, encrypt};
 use crate::encryption::base::KEY;
-use crate::TEST_VALUE;
 use std::fs::OpenOptions;
 use std::io::{BufReader, Read, Seek, SeekFrom, Write};
 use std::path::PathBuf;
@@ -100,7 +99,7 @@ pub fn file_test() {
     path.push("encryption");
     path.push("test");
     path.set_extension("txt");
-    let mut file_check = EncryptedFile::new(path);
+    let file_check = EncryptedFile::new(path);
     file_check
         .write_file(TEST_VALUE.to_owned().into_bytes())
         .unwrap();

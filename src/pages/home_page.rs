@@ -2,13 +2,12 @@ use slint::slint;
 use std::{
     rc::Rc,
     sync::{Arc, Mutex},
-    thread,
 };
 
 use rfd::FileDialog;
 use slint::{ComponentHandle, Model, ModelRc, SharedString, VecModel};
 
-use crate::time_manger::{self, time_file, TimeManger};
+use crate::time_manger::{TimeManger};
 
 use super::encryption_page;
 slint! {
