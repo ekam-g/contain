@@ -5,6 +5,7 @@ use super::{
 use crate::{encryption::file::EncryptedFile, TEST_VALUE};
 use anyhow::{anyhow, Ok};
 use std::path::PathBuf;
+//TODO FIX BUG HERE
 
 impl TimeManger {
     pub fn get_time_file(&mut self) -> anyhow::Result<()> {
@@ -35,9 +36,9 @@ impl TimeManger {
                 .ok_or(anyhow!("Failed to convert path to string"))?
                 .to_owned(),
         });
-        self.write_time_file()?;
         let efile: EncryptedFile = EncryptedFile::new(path);
         efile.encrypt_file()?;
+        self.write_time_file()?;
         Ok(())
     }
     pub fn decrypt_old_files(&mut self) -> anyhow::Result<()> {
@@ -49,6 +50,7 @@ impl TimeManger {
             efile.decrypt_file()?;
         }
         self.time_files.retain(|s| s.time < time);
+        self.write_time_file()?;
         Ok(())
     }
 }
@@ -72,18 +74,27 @@ pub fn normal() {
     time_path.push("time_manger");
     time_path.push("test");
     time_path.set_extension("timelock");
-    let mut time = TimeManger::path_new(time_path).unwrap();
+    let mut time = TimeManger::path_new(time_path.clone()).unwrap();
     let contents = String::from_utf8(file_check.read_file().unwrap()).unwrap();
     println!("{contents}");
     assert!(&contents == TEST_VALUE);
     time.current_unix_time = Some(0);
     time.add_file(path.clone(), 1).unwrap();
     time.current_unix_time = Some(2);
+    let time_check = EncryptedFile::new(time_path);
+    println!(
+        "{}",
+        String::from_utf8(time_check.clone().decrypt_read_file().unwrap()).unwrap()
+    );
     time.decrypt_old_files().unwrap();
     let contents = String::from_utf8(file_check.read_file().unwrap()).unwrap();
     println!("{contents}");
     assert!(&contents == TEST_VALUE);
     time.add_file(path, 3).unwrap();
+    println!(
+        "{}",
+        String::from_utf8(time_check.clone().decrypt_read_file().unwrap()).unwrap()
+    );
 }
 #[test]
 #[serial_test::serial(time)]
@@ -100,8 +111,7 @@ fn on_off_test() {
     path.set_extension("txt");
     let mut time = TimeManger::path_new(time_path.clone()).unwrap();
     println!("{:#?}", time);
-    time.current_unix_time = Some(2);
-    assert!(time.current_unix_time == Some(2));
+    time.current_unix_time = Some(3);
     let time_check = EncryptedFile::new(time_path);
     println!(
         "{}",
