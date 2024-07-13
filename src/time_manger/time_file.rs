@@ -4,7 +4,7 @@ use super::{
 };
 use crate::{encryption::file::EncryptedFile, TEST_VALUE};
 use anyhow::{anyhow, Ok};
-use std::{path::PathBuf};
+use std::path::PathBuf;
 
 impl TimeManger {
     pub fn get_time_file(&mut self) -> anyhow::Result<()> {
@@ -98,9 +98,15 @@ fn on_off_test() {
     path.push("time_manger");
     path.push("test");
     path.set_extension("txt");
-    let mut time = TimeManger::path_new(time_path).unwrap();
+    let mut time = TimeManger::path_new(time_path.clone()).unwrap();
     println!("{:#?}", time);
+    time.current_unix_time = Some(2);
     assert!(time.current_unix_time == Some(2));
+    let time_check = EncryptedFile::new(time_path);
+    println!(
+        "{}",
+        String::from_utf8(time_check.decrypt_read_file().unwrap()).unwrap()
+    );
     assert!(time.time_files.len() == 1);
     time.current_unix_time = Some(4);
     time.decrypt_old_files().unwrap();
