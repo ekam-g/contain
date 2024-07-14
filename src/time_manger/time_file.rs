@@ -22,7 +22,7 @@ impl TimeManger {
     }
     pub fn write_time_file(&self) -> anyhow::Result<()> {
         let efile: EncryptedFile = EncryptedFile::new(self.time_file_location.to_path_buf());
-        efile.encrypt_write_file(serde_json::to_vec(&self.time_files)?)?;
+        efile.encrypt_write_file(serde_json::to_vec(&TimeFileJson::new(&self.time_files))?)?;
         Ok(())
     }
     pub fn add_file(&mut self, path: PathBuf, time: u128) -> anyhow::Result<()> {
