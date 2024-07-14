@@ -5,7 +5,6 @@ use super::{
 use crate::{encryption::file::EncryptedFile, TEST_VALUE};
 use anyhow::{anyhow, Ok};
 use std::path::PathBuf;
-//TODO FIX BUG HERE
 
 impl TimeManger {
     pub fn get_time_file(&mut self) -> anyhow::Result<()> {
@@ -49,7 +48,8 @@ impl TimeManger {
             let mut efile = EncryptedFile::new(file.path.clone().into());
             efile.decrypt_file()?;
         }
-        self.time_files.retain(|s| s.time < time);
+        //TODO FIX BUG HERE
+        self.time_files =  self.time_files.clone().into_iter().filter(|s| s.time > time).collect();
         self.write_time_file()?;
         Ok(())
     }
@@ -118,6 +118,6 @@ fn on_off_test() {
         String::from_utf8(time_check.decrypt_read_file().unwrap()).unwrap()
     );
     assert!(time.time_files.len() == 1);
-    time.current_unix_time = Some(4);
+    time.current_unix_time = Some(6);
     time.decrypt_old_files().unwrap();
 }
