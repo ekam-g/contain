@@ -7,7 +7,7 @@ use std::{
 use rfd::FileDialog;
 use slint::{ComponentHandle, Model, ModelRc, SharedString, VecModel};
 
-use crate::time_manger::{TimeManger};
+use crate::time_manger::TimeManger;
 
 use super::encryption_page;
 slint! {
@@ -82,14 +82,7 @@ pub fn run() -> Result<(), slint::PlatformError> {
     let ui = MyApp::new()?;
     //Todo improve error handing
     let time_manger = Arc::new(Mutex::new(TimeManger::new().unwrap()));
-    let time_data: Rc<VecModel<(SharedString, i32)>> = Rc::new(VecModel::default());
-    time_manger
-        .lock()
-        .unwrap()
-        .time_files
-        .iter()
-        .for_each(|data| time_data.push((data.path.clone().into(), data.time as i32)));
-    ui.set_time_data(ModelRc::from(time_data));
+    ui.set_time_data(ModelRc::from(update_time_data(time_manger.clone())));
     ui.on_request_open_file({
         let ui_handle = ui.as_weak();
         let time_manger: Arc<Mutex<TimeManger>> = Arc::clone(&time_manger);
@@ -102,12 +95,25 @@ pub fn run() -> Result<(), slint::PlatformError> {
     });
     ui.on_request_refresh({
         let time_manger: Arc<Mutex<TimeManger>> = Arc::clone(&time_manger);
+        let ui_handle = ui.as_weak();
         move || {
             //todo finish this with https://releases.slint.dev/1.6.0/docs/rust/slint/fn.invoke_from_event_loop
             let mut time = time_manger.lock().unwrap();
             time.update_time().unwrap();
             time.decrypt_old_files().unwrap();
-        }
+            let time_manger: Arc<Mutex<TimeManger>> = Arc::clone(&time_manger);
+            ui_handle.upgrade_in_event_loop(move |handle| handle.set_time_data(ModelRc::from(update_time_data(time_manger.clone())))).unwrap();        }
     });
     ui.run()
+}
+
+fn update_time_data(time_manger : Arc<Mutex<TimeManger>>) ->  Rc<VecModel<(SharedString, i32)>>  {
+    let time_data: Rc<VecModel<(SharedString, i32)>> = Rc::new(VecModel::default());
+    time_manger
+        .lock()
+        .unwrap()
+        .time_files
+        .iter()
+        .for_each(|data| time_data.push((data.path.clone().into(), data.time as i32)));
+    time_data
 }
