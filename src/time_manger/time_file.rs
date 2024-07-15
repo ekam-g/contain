@@ -48,7 +48,6 @@ impl TimeManger {
             let mut efile = EncryptedFile::new(file.path.clone().into());
             efile.decrypt_file()?;
         }
-        //TODO FIX BUG HERE
         self.time_files =  self.time_files.clone().into_iter().filter(|s| s.time > time).collect();
         self.write_time_file()?;
         Ok(())

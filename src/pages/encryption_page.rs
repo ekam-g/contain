@@ -92,6 +92,7 @@ pub fn run(path: PathBuf, time: &Arc<Mutex<TimeManger>>) -> Result<(), slint::Pl
         let time: Arc<Mutex<TimeManger>> = Arc::clone(&time);
         move || {
             let ui = ui_handle.unwrap();
+            time.lock().unwrap().update_time().unwrap();
             time.lock()
                 .unwrap()
                 .add_file(path.clone(), ui.get_min().parse::<u128>().unwrap() * 60)
