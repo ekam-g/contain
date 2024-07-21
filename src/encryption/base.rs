@@ -4,9 +4,14 @@ use anyhow::anyhow;
 use const_random::const_random;
 use std::str;
 
-// Define constants for key and nonce this changes only during compling after a cargo clean
-pub const KEY: [u8; 32] = random_key();
-pub const NOICE: [u8; 12] = random_noice();
+pub const KEY: [u8; 32] = [
+    43, 221, 134, 53, 23, 35, 75, 34, 34, 56, 234, 34, 86, 35,
+    85, 46, 12, 91, 255, 198, 67, 18, 235, 139, 25, 72, 93,
+    247, 51, 14, 111, 226, 29
+];
+pub const NOICE: [u8; 12] = [
+    84, 123, 67, 51, 14, 226, 25, 72, 93, 247, 51, 34
+];
 /// Generates a valid key. This must be exactly 32 bytes.
 /// If the input key is shorter than 32 bytes, it will be padded with 0s.
 /// If the input key is longer than 32 bytes, it will be truncated.
@@ -66,4 +71,7 @@ pub fn example() {
     let decrypted_string = std::str::from_utf8(&decrypted_bytes).unwrap();
     println!("Decrypted response: {}", decrypted_string);
     assert!(decrypted_string == data.to_string());
+    print!("{:?\n}", KEY);
+    print!("{:?}\n", NOICE);
+
 }
