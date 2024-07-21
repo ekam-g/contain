@@ -17,7 +17,6 @@ export component MyApp inherits Window {
     preferred-height: 600px;
     title: "Home - Contain";
     in-out property <[{path: string, time: int}]> time_data;
-    in-out property <int128> current_time;
     callback request-open-file();
     callback request-refresh();
     VerticalBox {
@@ -35,8 +34,7 @@ export component MyApp inherits Window {
                     height: 50px;
                     width: parent.width;
                     Text {
-                        text: data.path + " " +  data.time;
-
+                        text: data.path;
                     }
                 }
             }
@@ -102,25 +100,18 @@ pub fn run() -> Result<(), slint::PlatformError> {
             time.update_time().unwrap();
             time.decrypt_old_files().unwrap();
             let time_manger: Arc<Mutex<TimeManger>> = Arc::clone(&time_manger);
-            ui_handle
-                .upgrade_in_event_loop(move |handle| {
-                    let (data , time) = update_time_data(time_manger.clone());
-                    handle.set_time_data(ModelRc::from(data));
-                    handle.set_current_time(time)
-                })
-                .unwrap();
-        }
+            ui_handle.upgrade_in_event_loop(move |handle| handle.set_time_data(ModelRc::from(update_time_data(time_manger.clone())))).unwrap();        }
     });
     ui.run()
 }
 
-fn update_time_data(
-    time_manger: Arc<Mutex<TimeManger>>,
-) -> (Rc<VecModel<(SharedString, i32)>>, u128) {
+fn update_time_data(time_manger : Arc<Mutex<TimeManger>>) ->  Rc<VecModel<(SharedString, i32)>>  {
     let time_data: Rc<VecModel<(SharedString, i32)>> = Rc::new(VecModel::default());
-    let time = time_manger.lock().unwrap();
-    time.time_files
+    time_manger
+        .lock()
+        .unwrap()
+        .time_files
         .iter()
         .for_each(|data| time_data.push((data.path.clone().into(), data.time as i32)));
-    (time_data, time.current_unix_time.unwrap_or_default())
+    time_data
 }
