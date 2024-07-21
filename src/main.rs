@@ -6,6 +6,6 @@ use pages::home_page;
 
 pub const TEST_VALUE: &str = "This works very well";
 
-fn main() {
-    todo!()
+fn main() -> Result<(), slint::PlatformError> {
+    home_page::run()
 }
