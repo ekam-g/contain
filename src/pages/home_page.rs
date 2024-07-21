@@ -5,7 +5,7 @@ use std::{
 };
 
 use rfd::FileDialog;
-use slint::{ComponentHandle, Model, ModelRc, SharedString, VecModel};
+use slint::{ComponentHandle, ModelRc, SharedString, VecModel};
 
 use crate::time_manger::TimeManger;
 
@@ -85,7 +85,7 @@ pub fn run() -> Result<(), slint::PlatformError> {
     let time_manger = Arc::new(Mutex::new(TimeManger::new().unwrap()));
     ui.set_time_data(ModelRc::from(update_time_data(time_manger.clone())));
     ui.on_request_open_file({
-        let ui_handle: slint::Weak<MyApp> = ui.as_weak();
+        // let ui_handle: slint::Weak<MyApp> = ui.as_weak();
         let time_manger: Arc<Mutex<TimeManger>> = Arc::clone(&time_manger);
         move || {
             let file = FileDialog::new().pick_file();
@@ -99,28 +99,33 @@ pub fn run() -> Result<(), slint::PlatformError> {
         let ui_handle = ui.as_weak();
         move || {
             //todo finish this with https://releases.slint.dev/1.6.0/docs/rust/slint/fn.invoke_from_event_loop
-            let mut time = time_manger.lock().unwrap();
-            time.update_time().unwrap();
-            time.decrypt_old_files().unwrap();
             let time_manger: Arc<Mutex<TimeManger>> = Arc::clone(&time_manger);
-            ui_handle
-                .upgrade_in_event_loop(move |handle| {
-                    let data  =   update_time_data(time_manger.clone());
-                    handle.set_time_data(ModelRc::from(data));
-                })
-                .unwrap();
+            let ui_handle = ui_handle.clone();
+            let thread = std::thread::spawn(move || {
+                let mut time = time_manger.lock().unwrap();
+                time.update_time().unwrap();
+                time.decrypt_old_files().unwrap();
+                let time_manger: Arc<Mutex<TimeManger>> = Arc::clone(&time_manger);
+                ui_handle
+                    .upgrade_in_event_loop(move |handle| {
+                        let data = update_time_data(time_manger.clone());
+                        handle.set_time_data(ModelRc::from(data));
+                    })
+                    .unwrap();
+            });
         }
     });
     ui.run()
 }
 
-fn update_time_data(
-    time_manger: Arc<Mutex<TimeManger>>,
-) -> (Rc<VecModel<(SharedString, i32)>>) {
+fn update_time_data(time_manger: Arc<Mutex<TimeManger>>) -> Rc<VecModel<(SharedString, i32)>> {
     let time_data: Rc<VecModel<(SharedString, i32)>> = Rc::new(VecModel::default());
     let time = time_manger.lock().unwrap();
-    time.time_files
-        .iter()
-        .for_each(|data| time_data.push((data.path.clone().into(), ((data.time -  time.current_unix_time.unwrap_or_default()) as i32 /  60) + 1)));
+    time.time_files.iter().for_each(|data| {
+        time_data.push((
+            data.path.clone().into(),
+            ((data.time - time.current_unix_time.unwrap_or_default()) as i32 / 60) + 1,
+        ))
+    });
     time_data
 }
