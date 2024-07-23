@@ -147,9 +147,9 @@ fn move_fail_test() {
     let mut time = TimeManger::path_new(time_path.clone()).unwrap();
     //actual test
     time.current_unix_time = Some(8);
-    time.add_file(path.clone(), 9);
+    time.add_file(path.clone(), 9).unwrap();
     path.push("BADPATH");
-    time.add_file(path.clone(), 9);
+    time.time_files.push(TimeFile {path: path.to_str().unwrap().to_owned(), time: 9});
     time.current_unix_time  = Some(10);
     let failed = time.decrypt_old_files().unwrap();
     let (check , _) = &failed[0];
