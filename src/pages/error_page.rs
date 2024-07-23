@@ -4,44 +4,24 @@ use std::{
     thread,
 };
 
-use anyhow::Ok;
 use slint::{slint, ComponentHandle};
 
 use crate::time_manger::TimeManger;
 
 slint! {
-    import { Button, VerticalBox, ListView, ProgressIndicator, HorizontalBox } from "std-widgets.slint";
+import { Button, VerticalBox, ListView, ProgressIndicator, HorizontalBox } from "std-widgets.slint";
 
 
-export component EncryptionPage inherits Window {
-    preferred-width: 250px;
-    preferred-height: 100px;
-    in-out property <{path: string, time: int}> time_data;
-    in-out property <string> min;
-    title: time_data.path;
-    callback close();
-    callback encrypt();
+export component ErrorPage inherits Window {
+    preferred-width: 320px;
+    preferred-height: 180px;
+    in-out property <string> prompt;
+    title: "ERROR";
+    callback yes();
     VerticalBox {
-        Rectangle {
-            border-width: 1px;
-            border-color: black;
-            border-radius: 12px;
-            height: 10%;
-            width: 80%;
-            HorizontalBox {
-                Text {
-                    text: "Minutes";
-                }
-                input := TextInput {
-                    input-type : InputType.number;
-                    text: 0;
-                    edited => {
-                        min = self.text
-                    }
-                }
-            }
+        Text {
+            text: prompt;
         }
-
         HorizontalLayout {
             padding: 10px;
             height: 12%;
@@ -53,9 +33,9 @@ export component EncryptionPage inherits Window {
                 Button {
                     width: 100%;
                     height: 100%;
-                    text: "Cancel";
+                    text: "No";
                     clicked => {
-                        root.close()
+                        root.close();
                     }
                 }
             }
@@ -69,7 +49,7 @@ export component EncryptionPage inherits Window {
                     height: 100%;
                     text: "Ok";
                     clicked => {
-                        root.encrypt();
+                        root.yes();
                         root.close();
                     }
                 }
@@ -77,11 +57,13 @@ export component EncryptionPage inherits Window {
         }
     }
 }
-
 }
-//todo make the error  page
+
+
+
 pub fn run(path: PathBuf, time: &Arc<Mutex<TimeManger>>) -> Result<(), slint::PlatformError> {
-    let ui = EncryptionPage::new()?;
+    let ui = ErrorPage::new()?;
+    thread::spawn(move || {});
     ui.on_close({
         let ui_handle = ui.as_weak();
         move || {
