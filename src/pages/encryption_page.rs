@@ -1,10 +1,8 @@
 use std::{
     path::PathBuf,
     sync::{Arc, Mutex},
-    thread,
 };
 
-use anyhow::Ok;
 use slint::{slint, ComponentHandle};
 
 use crate::time_manger::TimeManger;

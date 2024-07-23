@@ -1,7 +1,5 @@
 use std::{
-    path::PathBuf,
-    sync::{Arc, Mutex},
-    thread,
+    path::PathBuf, sync::{atomic::{AtomicBool, Ordering}, Arc, Mutex}, thread
 };
 
 use slint::{slint, ComponentHandle};
@@ -9,7 +7,7 @@ use slint::{slint, ComponentHandle};
 use crate::time_manger::TimeManger;
 
 slint! {
-import { Button, VerticalBox, ListView, ProgressIndicator, HorizontalBox } from "std-widgets.slint";
+    import { Button, VerticalBox, ListView, ProgressIndicator, HorizontalBox } from "std-widgets.slint";
 
 
 export component ErrorPage inherits Window {
@@ -18,6 +16,7 @@ export component ErrorPage inherits Window {
     in-out property <string> prompt;
     title: "ERROR";
     callback yes();
+    callback close();
     VerticalBox {
         Text {
             text: prompt;
@@ -61,9 +60,10 @@ export component ErrorPage inherits Window {
 
 
 
-pub fn run(path: PathBuf, time: &Arc<Mutex<TimeManger>>) -> Result<(), slint::PlatformError> {
+pub fn run(error_text : String) -> Result<bool, slint::PlatformError> {
     let ui = ErrorPage::new()?;
-    thread::spawn(move || {});
+    let  input =    Arc::new(AtomicBool::new(false));
+    ui.set_prompt(error_text.into());
     ui.on_close({
         let ui_handle = ui.as_weak();
         move || {
@@ -71,18 +71,12 @@ pub fn run(path: PathBuf, time: &Arc<Mutex<TimeManger>>) -> Result<(), slint::Pl
             ui.hide().unwrap();
         }
     });
-    ui.on_encrypt({
-        let ui_handle = ui.as_weak();
-        let time: Arc<Mutex<TimeManger>> = Arc::clone(&time);
+    ui.on_yes({
+        let input = Arc::clone(&input);
         move || {
-            let ui = ui_handle.unwrap();
-            time.lock().unwrap().update_time().unwrap();
-            time.lock()
-                .unwrap()
-                .add_file(path.clone(), ui.get_min().parse::<u128>().unwrap() * 60)
-                .unwrap();
-            ui.hide().unwrap();
+            input.store(true, Ordering::Release);
         }
     });
-    ui.show()
+    ui.show()?;
+    Ok(input.load(Ordering::Relaxed))
 }
