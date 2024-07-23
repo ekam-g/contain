@@ -1,6 +1,5 @@
 use slint::{slint, Weak};
 use std::{
-    fmt::format,
     rc::Rc,
     sync::{Arc, Mutex},
     thread,
@@ -10,7 +9,7 @@ use std::{
 use rfd::FileDialog;
 use slint::{ComponentHandle, ModelRc, SharedString, VecModel};
 
-use crate::time_manger::{self, time_file_json::TimeFile, TimeManger};
+use crate::time_manger::TimeManger;
 
 use super::{encryption_page, error_page};
 slint! {
@@ -70,18 +69,19 @@ export component MyApp inherits Window {
 }
 pub fn run() -> Result<(), slint::PlatformError> {
     let ui = MyApp::new()?;
-    //Todo improve error handing
     let time_manger = Arc::new(Mutex::new(TimeManger::new().unwrap()));
     remove_old_files_thread(Arc::clone(&time_manger), ui.as_weak());
     ui.set_time_data(ModelRc::from(update_time_data(&time_manger)));
     ui.on_request_open_file({
-        // let ui_handle: slint::Weak<MyApp> = ui.as_weak();
         move || {
             let time_manger: Arc<Mutex<TimeManger>> = Arc::clone(&time_manger);
             thread::spawn(move || {
                 let file = FileDialog::new().pick_file();
                 if let Some(file_checked) = file {
-                    encryption_page::run(file_checked, &time_manger).unwrap();
+                    slint::invoke_from_event_loop(move || {
+                        encryption_page::run(file_checked, &time_manger).unwrap()
+                    })
+                    .unwrap();
                 }
             });
         }
@@ -103,10 +103,11 @@ fn update_time_data(time_manger: &Arc<Mutex<TimeManger>>) -> Rc<VecModel<(Shared
 fn remove_old_files_thread(time_manger: Arc<Mutex<TimeManger>>, ui_handle: Weak<MyApp>) {
     std::thread::spawn(move || loop {
         thread::sleep(Duration::from_millis(500));
-        let mut time = time_manger.lock().unwrap();
-        if time.update_time().is_err() {
+        if time_manger.lock().unwrap().update_time().is_err() {
+            println!("Failed To Update Time");
             continue;
         }
+        let mut  time =  time_manger.lock().unwrap();
         match time.decrypt_old_files() {
             Err(e) => {
                 error_page::run(format!("Failed To Decrypt Due To: {}", e), false).unwrap();
@@ -126,6 +127,7 @@ fn remove_old_files_thread(time_manger: Arc<Mutex<TimeManger>>, ui_handle: Weak<
                 }
             }),
         }
+        drop(time);
         let time_manger: Arc<Mutex<TimeManger>> = Arc::clone(&time_manger);
         ui_handle
             .upgrade_in_event_loop(move |handle| {
