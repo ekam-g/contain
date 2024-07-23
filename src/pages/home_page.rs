@@ -1,7 +1,6 @@
-use slint::slint;
+use slint::{slint, Weak};
 use std::{
-    rc::Rc,
-    sync::{Arc, Mutex},
+    rc::Rc, sync::{Arc, Mutex}, thread, time::Duration
 };
 
 use rfd::FileDialog;
@@ -98,21 +97,9 @@ pub fn run() -> Result<(), slint::PlatformError> {
         let time_manger: Arc<Mutex<TimeManger>> = Arc::clone(&time_manger);
         let ui_handle = ui.as_weak();
         move || {
-            //todo finish this with https://releases.slint.dev/1.6.0/docs/rust/slint/fn.invoke_from_event_loop
             let time_manger: Arc<Mutex<TimeManger>> = Arc::clone(&time_manger);
             let ui_handle = ui_handle.clone();
-            let thread = std::thread::spawn(move || {
-                let mut time = time_manger.lock().unwrap();
-                time.update_time().unwrap();
-                time.decrypt_old_files().unwrap();
-                let time_manger: Arc<Mutex<TimeManger>> = Arc::clone(&time_manger);
-                ui_handle
-                    .upgrade_in_event_loop(move |handle| {
-                        let data = update_time_data(time_manger.clone());
-                        handle.set_time_data(ModelRc::from(data));
-                    })
-                    .unwrap();
-            });
+            // remove_old_files(time_manger, ui_handle)
         }
     });
     ui.run()
@@ -128,4 +115,24 @@ fn update_time_data(time_manger: Arc<Mutex<TimeManger>>) -> Rc<VecModel<(SharedS
         ))
     });
     time_data
+}
+fn remove_old_files_thread(time_manger: Arc<Mutex<TimeManger>>, ui_handle: Weak<MyApp>) {
+    std::thread::spawn(move || loop {
+        thread::sleep(Duration::from_millis(500));
+        let mut time = time_manger.lock().unwrap();
+        if time.update_time().is_err() {
+            continue;
+        }
+        if time.decrypt_old_files().is_err() {
+            //todo handle this error better
+            println!("Fail To Decrypt File");
+        }
+        let time_manger: Arc<Mutex<TimeManger>> = Arc::clone(&time_manger);
+        ui_handle
+            .upgrade_in_event_loop(move |handle| {
+                let data = update_time_data(time_manger.clone());
+                handle.set_time_data(ModelRc::from(data));
+            })
+            .unwrap();
+    });
 }

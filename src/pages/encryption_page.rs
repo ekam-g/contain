@@ -1,6 +1,7 @@
 use std::{
     path::PathBuf,
     sync::{Arc, Mutex},
+    thread,
 };
 
 use slint::{slint, ComponentHandle};
@@ -80,6 +81,7 @@ export component EncryptionPage inherits Window {
 
 pub fn run(path: PathBuf, time: &Arc<Mutex<TimeManger>>) -> Result<(), slint::PlatformError> {
     let ui = EncryptionPage::new()?;
+    thread::spawn(move || {});
     ui.on_close({
         let ui_handle = ui.as_weak();
         move || {

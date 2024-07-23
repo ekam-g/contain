@@ -4,7 +4,7 @@ use super::{
 };
 use crate::{encryption::file::EncryptedFile, TEST_VALUE};
 use anyhow::{anyhow, Ok};
-use std::path::PathBuf;
+use std::{io::Error, path::{PathBuf}};
 
 impl TimeManger {
     pub fn get_time_file(&mut self) -> anyhow::Result<()> {
@@ -40,17 +40,28 @@ impl TimeManger {
         self.write_time_file()?;
         Ok(())
     }
-    pub fn decrypt_old_files(&mut self) -> anyhow::Result<()> {
+    //Returns a list of files that it failed to decriypt MAKE SURE TO HANDLE THIS
+    pub fn decrypt_old_files(&mut self) -> anyhow::Result<Vec<(String, anyhow::Error)>> {
+        let mut failed: Vec<(String, anyhow::Error)> = vec![];
         let time: u128 = self
             .current_unix_time
             .ok_or(anyhow!("Current Time is is unknown"))?;
         for file in self.time_files.iter().filter(|s| s.time < time) {
             let mut efile = EncryptedFile::new(file.path.clone().into());
-            efile.decrypt_file()?;
+            if let Err(e) = efile.decrypt_file() {
+                failed.push((file.path.clone(), e))
+            }
         }
-        self.time_files =  self.time_files.clone().into_iter().filter(|s| s.time > time).collect();
+        self.time_files = self
+            .time_files
+            .clone()
+            .into_iter()
+            .filter(|s| {
+                s.time > time && failed.iter().any(|(path, _)| path == &s.path)
+            })
+            .collect();
         self.write_time_file()?;
-        Ok(())
+        Ok(failed)
     }
 }
 
@@ -119,4 +130,30 @@ fn on_off_test() {
     assert!(time.time_files.len() == 1);
     time.current_unix_time = Some(6);
     time.decrypt_old_files().unwrap();
+}
+#[test]
+#[serial_test::serial(time)]
+fn move_fail_test() {
+    let mut time_path = PathBuf::new();
+    time_path.push("src");
+    time_path.push("time_manger");
+    time_path.push("test");
+    time_path.set_extension("timelock");
+    let mut path = PathBuf::new();
+    path.push("src");
+    path.push("time_manger");
+    path.push("test");
+    path.set_extension("txt");
+    let mut time = TimeManger::path_new(time_path.clone()).unwrap();
+    //actual test
+    time.current_unix_time = Some(8);
+    time.add_file(path.clone(), 9);
+    path.push("BADPATH");
+    time.add_file(path.clone(), 9);
+    time.current_unix_time  = Some(10);
+    let failed = time.decrypt_old_files().unwrap();
+    let (check , _) = &failed[0];
+    let check : PathBuf = check.into();
+    assert!(check == path);
+    assert!(failed.len() == 1);
 }
