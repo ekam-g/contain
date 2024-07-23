@@ -4,7 +4,6 @@ use std::{
 
 use slint::{slint, ComponentHandle};
 
-use crate::time_manger::TimeManger;
 
 slint! {
     import { Button, VerticalBox, ListView, ProgressIndicator, HorizontalBox } from "std-widgets.slint";
@@ -13,15 +12,17 @@ slint! {
 export component ErrorPage inherits Window {
     preferred-width: 320px;
     preferred-height: 180px;
-    in-out property <string> prompt;
+    in property <string> prompt;
+    in property <bool> show;
     title: "ERROR";
     callback yes();
     callback close();
     VerticalBox {
         Text {
+            padding: 10px;
             text: prompt;
         }
-        HorizontalLayout {
+        if show : HorizontalLayout {
             padding: 10px;
             height: 12%;
             spacing: 15px;
@@ -38,7 +39,6 @@ export component ErrorPage inherits Window {
                     }
                 }
             }
-
             Rectangle {
                 border-width: 1px;
                 border-color: black;
@@ -60,10 +60,11 @@ export component ErrorPage inherits Window {
 
 
 
-pub fn run(error_text : String) -> Result<bool, slint::PlatformError> {
+pub fn run(error_text : String, show_buttion : bool) -> Result<bool, slint::PlatformError> {
     let ui = ErrorPage::new()?;
     let  input =    Arc::new(AtomicBool::new(false));
     ui.set_prompt(error_text.into());
+    ui.set_show(show_buttion);
     ui.on_close({
         let ui_handle = ui.as_weak();
         move || {
