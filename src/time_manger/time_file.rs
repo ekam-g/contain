@@ -56,10 +56,13 @@ impl TimeManger {
             .time_files
             .clone()
             .into_iter()
-            .filter(|s| s.time > time || failed.iter().any(|(path, _)| path == &s.path))
+            .filter(|s| s.time > time && failed.iter().any(|(path, _)| path != &s.path))
             .collect();
         self.write_time_file()?;
         Ok(failed)
+    }
+    pub fn remove_time_file() {
+        
     }
 }
 #[cfg(test)]
@@ -137,7 +140,7 @@ mod timefile_tests {
     }
     #[test]
 
-    fn move_fail_test() {
+    fn fail_test() {
         let mut time_path = PathBuf::new();
         time_path.push("src");
         time_path.push("time_manger");
@@ -163,6 +166,7 @@ mod timefile_tests {
         let check: PathBuf = check.into();
         assert!(check == path);
         assert!(failed.len() == 1);
+        assert!(time.time_files.len() == 1);
         time.time_files = vec![];
         time.write_time_file().unwrap();
         
@@ -185,7 +189,8 @@ mod timefile_tests {
         //actual test
         time.current_unix_time = Some(12);
         time.add_file(path.clone(), 2).unwrap();
-        let _ = time.decrypt_old_files().unwrap();
+        let data = time.decrypt_old_files().unwrap();
+        println!("Failed: {:?}", data);
         println!("time: {:?}", time.time_files);
         assert!(time.time_files.len() == 1);
         time.current_unix_time = Some(16);
