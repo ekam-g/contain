@@ -137,14 +137,14 @@ fn remove_old_files_thread(time_manger: Arc<Mutex<TimeManger>>, ui_handle: Weak<
                     })
                     .unwrap();
                 }
+                let time_manger: Arc<Mutex<TimeManger>> = Arc::clone(&time_manger);
+                ui_handle
+                    .upgrade_in_event_loop(move |handle| {
+                        let data = update_time_data(&time_manger);
+                        handle.set_time_data(ModelRc::from(data));
+                    })
+                    .unwrap();
             }
         }
-        let time_manger: Arc<Mutex<TimeManger>> = Arc::clone(&time_manger);
-        ui_handle
-            .upgrade_in_event_loop(move |handle| {
-                let data = update_time_data(&time_manger);
-                handle.set_time_data(ModelRc::from(data));
-            })
-            .unwrap();
     });
 }
