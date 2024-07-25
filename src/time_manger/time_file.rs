@@ -110,7 +110,6 @@ mod timefile_tests {
         assert!(&contents == TEST_VALUE);
     }
     #[test]
-
     fn on_off_test() {
         let mut time_path = PathBuf::new();
         time_path.push("src");
@@ -139,7 +138,6 @@ mod timefile_tests {
         time.decrypt_old_files().unwrap();
     }
     #[test]
-
     fn fail_test() {
         let mut time_path = PathBuf::new();
         time_path.push("src");
@@ -173,7 +171,6 @@ mod timefile_tests {
     }
 
     #[test]
-
     fn not_done_test() {
         let mut time_path = PathBuf::new();
         time_path.push("src");
