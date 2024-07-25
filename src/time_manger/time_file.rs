@@ -52,6 +52,7 @@ impl TimeManger {
                 failed.push((file.path.clone(), e))
             }
         }
+        //todo fix issue here
         self.time_files = self
             .time_files
             .clone()
