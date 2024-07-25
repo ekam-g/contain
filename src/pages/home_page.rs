@@ -9,7 +9,7 @@ use std::{
 use rfd::FileDialog;
 use slint::{ComponentHandle, ModelRc, SharedString, VecModel};
 
-use crate::time_manger::TimeManger;
+use crate::time_manger::{self, TimeManger};
 
 use super::{encryption_page, error_page};
 slint! {
@@ -107,27 +107,38 @@ fn remove_old_files_thread(time_manger: Arc<Mutex<TimeManger>>, ui_handle: Weak<
             println!("Failed To Update Time");
             continue;
         }
-        let mut  time =  time_manger.lock().unwrap();
-        match time.decrypt_old_files() {
+        match time_manger.lock().unwrap().decrypt_old_files() {
             Err(e) => {
                 error_page::run(format!("Failed To Decrypt Due To: {}", e), false).unwrap();
+                slint::invoke_from_event_loop(move || {
+                    error_page::run(format!("Failed To Decrypt Due To: {}", e), false).unwrap();
+                })
+                .unwrap();
                 continue;
             }
-            Ok(failed) => failed.iter().for_each(|(path, e)| {
-                let input =
-                    error_page::run(format!("Failed To Decrypt {} Due To: {}", path, e), true)
+            Ok(failed) => {
+                for (path, e) in failed {
+                    let time_manger: Arc<Mutex<TimeManger>> = Arc::clone(&time_manger);
+                    slint::invoke_from_event_loop(move || {
+                        let mut time = time_manger.lock().unwrap();
+                        let input: bool = error_page::run(
+                            format!("Failed To Decrypt {} Due To: {}", path, e),
+                            true,
+                        )
                         .unwrap();
-                if input {
-                    time.time_files = time
-                        .time_files
-                        .clone()
-                        .into_iter()
-                        .filter(|time_file| time_file.path != *path)
-                        .collect();
+                        if input {
+                            time.time_files = time
+                                .time_files
+                                .clone()
+                                .into_iter()
+                                .filter(|time_file| time_file.path != *path)
+                                .collect();
+                        }
+                    })
+                    .unwrap();
                 }
-            }),
+            }
         }
-        drop(time);
         let time_manger: Arc<Mutex<TimeManger>> = Arc::clone(&time_manger);
         ui_handle
             .upgrade_in_event_loop(move |handle| {
