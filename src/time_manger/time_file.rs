@@ -52,12 +52,11 @@ impl TimeManger {
                 failed.push((file.path.clone(), e))
             }
         }
-        //todo fix issue here
         self.time_files = self
             .time_files
             .clone()
             .into_iter()
-            .filter(|s| s.time > time && failed.iter().any(|(path, _)| path != &s.path))
+            .filter(|s| s.time > time || failed.iter().any(|(path, _)| path != &s.path))
             .collect();
         self.write_time_file()?;
         Ok(failed)
