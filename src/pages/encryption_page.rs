@@ -1,6 +1,5 @@
 use std::{path::PathBuf, sync::Arc};
 
-use futures::executor::block_on;
 use slint::{slint, ComponentHandle};
 use tokio::sync::Mutex;
 
