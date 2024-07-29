@@ -43,11 +43,11 @@ pub struct WorldTimeApiResponse {
 ///
 /// Returns an error if the HTTP request fails or if the response status is not successful.
 impl TimeManger {
-    fn fetch_world_time_sync() -> anyhow::Result<WorldTimeApiResponse> {
+    async fn fetch_world_time_sync() -> anyhow::Result<WorldTimeApiResponse> {
         let response =
-            reqwest::blocking::get("https://worldtimeapi.org/api/timezone/Europe/London")?;
+            reqwest::get("https://worldtimeapi.org/api/timezone/Europe/London").await?;
         if response.status().is_success() {
-            let body = response.text()?;
+            let body = response.text().await?;
             let parsed_response: WorldTimeApiResponse = serde_json::from_str(&body)?;
             Ok(parsed_response)
         } else {
@@ -57,14 +57,14 @@ impl TimeManger {
             ))
         }
     }
-    pub fn update_time(&mut self) -> anyhow::Result<()> {
-        self.current_unix_time = Some(TimeManger::fetch_world_time_sync()?.unixtime);
+    pub async fn update_time(&mut self) -> anyhow::Result<()> {
+        self.current_unix_time = Some(TimeManger::fetch_world_time_sync().await?.unixtime);
         Ok(())
     }
 }
-#[test]
-fn example() {
-    match TimeManger::fetch_world_time_sync() {
+#[tokio::test]
+async fn example() {
+    match TimeManger::fetch_world_time_sync().await {
         Ok(response) => println!("{:#?}", response.unixtime),
         Err(err) => panic!("Error: {:?}", err),
     }

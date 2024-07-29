@@ -52,12 +52,12 @@ impl EncryptedFile {
         let data: Vec<u8> = self.read_file().await?;
         decrypt(&data, KEY.as_ref())
     }
-    pub async fn decrypt_file(&mut self) -> anyhow::Result<()> {
+    pub async fn decrypt_file(&self) -> anyhow::Result<()> {
         let data: Vec<u8> = self.decrypt_read_file().await?;
         self.write_file(data)
     }
 
-    pub async fn file_location() -> PathBuf {
+    pub fn file_location() -> PathBuf {
         let mut home_dir = match home::home_dir() {
             Some(path) => path,
             None => {
