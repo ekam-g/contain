@@ -3,7 +3,7 @@ use slint::{slint, Weak};
 use tokio::sync::Mutex;
 use std::{
     rc::Rc,
-    sync::{Arc},
+    sync::Arc,
     thread,
     time::Duration,
 };
