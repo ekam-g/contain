@@ -11,7 +11,7 @@ use std::{
 use rfd::FileDialog;
 use slint::{ComponentHandle, ModelRc, SharedString, VecModel};
 
-use crate::time_manger::{self, TimeManger};
+use crate::time_manger::{TimeManger};
 
 use super::{encryption_page, error_page};
 slint! {
