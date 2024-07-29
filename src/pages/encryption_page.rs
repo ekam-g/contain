@@ -86,7 +86,7 @@ pub fn run(path: PathBuf, time: &Arc<Mutex<TimeManger>>) -> Result<(), slint::Pl
     });
     ui.on_encrypt({
         let ui_handle = ui.as_weak();
-        let time: Arc<Mutex<TimeManger>> = Arc::clone(&time);
+        let time: Arc<Mutex<TimeManger>> = Arc::clone(time);
         move || {
             let ui = ui_handle.unwrap();
             let duration = ui.get_min().parse::<u128>().unwrap() * 60;

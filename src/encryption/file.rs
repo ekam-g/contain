@@ -13,7 +13,7 @@ pub struct EncryptedFile {
 }
 impl EncryptedFile {
     pub fn new(path: PathBuf) -> Self {
-        Self { path: path }
+        Self { path }
     }
     pub async fn create_file(&self) -> Result<std::fs::File, std::io::Error> {
         std::fs::File::create(&self.path)
