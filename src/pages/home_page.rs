@@ -1,17 +1,12 @@
 use futures::executor::block_on;
 use slint::{slint, Weak};
+use std::{rc::Rc, sync::Arc, thread, time::Duration};
 use tokio::sync::Mutex;
-use std::{
-    rc::Rc,
-    sync::Arc,
-    thread,
-    time::Duration,
-};
 
 use rfd::FileDialog;
 use slint::{ComponentHandle, ModelRc, SharedString, VecModel};
 
-use crate::time_manger::{TimeManger};
+use crate::time_manger::TimeManger;
 
 use super::{encryption_page, error_page};
 slint! {
@@ -77,7 +72,7 @@ pub async fn run() -> Result<(), slint::PlatformError> {
     ui.on_request_open_file({
         move || {
             let time_manger: Arc<Mutex<TimeManger>> = Arc::clone(&time_manger);
-            thread::spawn(move || {
+            tokio::spawn(async move {
                 let file = FileDialog::new().pick_file();
                 if let Some(file_checked) = file {
                     slint::invoke_from_event_loop(move || {
@@ -91,7 +86,9 @@ pub async fn run() -> Result<(), slint::PlatformError> {
     ui.run()
 }
 
-async fn update_time_data(time_manger: &Arc<Mutex<TimeManger>>) -> Rc<VecModel<(SharedString, i32)>> {
+async fn update_time_data(
+    time_manger: &Arc<Mutex<TimeManger>>,
+) -> Rc<VecModel<(SharedString, i32)>> {
     let time_data: Rc<VecModel<(SharedString, i32)>> = Rc::new(VecModel::default());
     let time = time_manger.lock().await;
     time.time_files.iter().for_each(|data| {
@@ -102,7 +99,7 @@ async fn update_time_data(time_manger: &Arc<Mutex<TimeManger>>) -> Rc<VecModel<(
     });
     time_data
 }
-//todo improve this to work better with async 
+
 async fn remove_old_files_thread(time_manger: Arc<Mutex<TimeManger>>, ui_handle: Weak<MyApp>) {
     tokio::spawn(async move {
         loop {

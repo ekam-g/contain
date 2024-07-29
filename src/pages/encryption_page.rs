@@ -90,10 +90,16 @@ pub fn run(path: PathBuf, time: &Arc<Mutex<TimeManger>>) -> Result<(), slint::Pl
         let time: Arc<Mutex<TimeManger>> = Arc::clone(&time);
         move || {
             let ui = ui_handle.unwrap();
-            let mut time = block_on(time.lock());
-            // time.update_time().unwrap();
-            block_on(time.add_file(path.clone(), ui.get_min().parse::<u128>().unwrap() * 60))
-                .unwrap();
+            let duration = ui.get_min().parse::<u128>().unwrap() * 60;
+            let time: Arc<Mutex<TimeManger>> = Arc::clone(&time);
+            let path = path.clone();
+            tokio::spawn(async move {
+                time.lock()
+                    .await
+                    .add_file(path.clone(), duration)
+                    .await
+                    .unwrap();
+            });
             ui.hide().unwrap();
         }
     });
