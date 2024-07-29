@@ -167,7 +167,6 @@ mod timefile_tests {
         assert!(time.time_files.len() == 1);
         time.time_files = vec![];
         time.write_time_file().unwrap();
-        
     }
 
     #[test]
