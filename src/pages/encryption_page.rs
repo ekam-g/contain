@@ -1,9 +1,8 @@
-use std::{
-    path::PathBuf,
-    sync::{Arc, Mutex},
-};
+use std::{path::PathBuf, sync::Arc};
 
+use futures::executor::block_on;
 use slint::{slint, ComponentHandle};
+use tokio::sync::Mutex;
 
 use crate::time_manger::TimeManger;
 
@@ -92,9 +91,9 @@ pub fn run(path: PathBuf, time: &Arc<Mutex<TimeManger>>) -> Result<(), slint::Pl
         let time: Arc<Mutex<TimeManger>> = Arc::clone(&time);
         move || {
             let ui = ui_handle.unwrap();
-            let mut time = time.lock().unwrap();
+            let mut time = block_on(time.lock());
             // time.update_time().unwrap();
-            time.add_file(path.clone(), ui.get_min().parse::<u128>().unwrap() * 60)
+            block_on(time.add_file(path.clone(), ui.get_min().parse::<u128>().unwrap() * 60))
                 .unwrap();
             ui.hide().unwrap();
         }
