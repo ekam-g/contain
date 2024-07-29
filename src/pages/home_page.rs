@@ -73,6 +73,18 @@ pub async fn run() -> Result<(), slint::PlatformError> {
         move || {
             let time_manger: Arc<Mutex<TimeManger>> = Arc::clone(&time_manger);
             tokio::spawn(async move {
+                // No Wifi
+                if time_manger.lock().await.current_unix_time.is_none() {
+                    slint::invoke_from_event_loop(move || {
+                        error_page::run(
+                            "Time is unknown(connection to api failed)".to_owned(),
+                            false,
+                        )
+                        .unwrap();
+                    })
+                    .unwrap();
+                    return;
+                }
                 let file = FileDialog::new().pick_file();
                 if let Some(file_checked) = file {
                     slint::invoke_from_event_loop(move || {
