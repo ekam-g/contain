@@ -1,7 +1,6 @@
 use aead::{generic_array::GenericArray, Aead, KeyInit};
 use aes_gcm::Aes256Gcm;
 use anyhow::anyhow;
-use const_random::const_random;
 use std::str;
 
 pub const KEY: [u8; 32] = [
@@ -39,26 +38,26 @@ pub fn decrypt(cipher_text: &[u8], key: &[u8]) -> anyhow::Result<Vec<u8>> {
     let cipher = Aes256Gcm::new(key);
     cipher.decrypt(nonce, cipher_text).map_err(|e| anyhow!(e))
 }
-/// Generates a random byte array of the specified length using compile-time randomness.
-const fn random_bytes<const N: usize>() -> [u8; N] {
-    let mut random_array: [u8; N] = [0; N];
-    let mut x = 0;
-    while x != N {
-        random_array[x] = const_random!(u8);
-        x += 1;
-    }
-    random_array
-}
+// /// Generates a random byte array of the specified length using compile-time randomness.
+// const fn random_bytes<const N: usize>() -> [u8; N] {
+//     let mut random_array: [u8; N] = [0; N];
+//     let mut x = 0;
+//     while x != N {
+//         random_array[x] = const_random!(u8);
+//         x += 1;
+//     }
+//     random_array
+// }
 
-/// Generates a random 32-byte key using compile-time randomness.
-const fn random_key() -> [u8; 32] {
-    random_bytes()
-}
+// /// Generates a random 32-byte key using compile-time randomness.
+// const fn random_key() -> [u8; 32] {
+//     random_bytes()
+// }
 
-/// Generates a random 12-byte nonce using compile-time randomness.
-const fn random_noice() -> [u8; 12] {
-    random_bytes()
-}
+// /// Generates a random 12-byte nonce using compile-time randomness.
+// const fn random_noice() -> [u8; 12] {
+//     random_bytes()
+// }
 
 #[test]
 pub fn example() {

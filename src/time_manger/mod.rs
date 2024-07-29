@@ -15,25 +15,25 @@ pub struct TimeManger {
 }
 
 impl TimeManger {
-    pub fn new() -> anyhow::Result<TimeManger> {
+    pub async fn new() -> anyhow::Result<TimeManger> {
         let mut time = TimeManger {
             time_files: vec![],
             current_unix_time: None,
             time_file_location: EncryptedFile::file_location(),
         };
-        if time.get_time_file().is_err() {
-            time.create_time_file(TimeFileJson { time_files: vec![] })?;
+        if time.get_time_file().await.is_err() {
+            time.create_time_file(TimeFileJson { time_files: vec![] }).await?;
         }
         Ok(time)
     }
-    pub fn path_new(path: PathBuf) -> anyhow::Result<TimeManger> {
+    pub async fn path_new(path: PathBuf) -> anyhow::Result<TimeManger> {
         let mut time = TimeManger {
             time_files: vec![],
             current_unix_time: None,
             time_file_location: path,
         };
-        if time.get_time_file().is_err() {
-            time.create_time_file(TimeFileJson { time_files: vec![] })?;
+        if time.get_time_file().await.is_err() {
+            time.create_time_file(TimeFileJson { time_files: vec![] }).await?;
         }
         Ok(time)
     }

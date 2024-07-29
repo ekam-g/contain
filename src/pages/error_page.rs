@@ -1,6 +1,6 @@
-use std::{
-    path::PathBuf, sync::{atomic::{AtomicBool, Ordering}, Arc, Mutex}, thread
-};
+use std::
+    sync::{atomic::{AtomicBool, Ordering}, Arc}
+;
 
 use slint::{slint, ComponentHandle};
 
