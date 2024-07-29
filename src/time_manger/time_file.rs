@@ -2,9 +2,9 @@ use super::{
     time_file_json::{TimeFile, TimeFileJson},
     TimeManger,
 };
-use crate::{encryption::file::EncryptedFile};
+use crate::encryption::file::EncryptedFile;
 use anyhow::{anyhow, Ok};
-use std::{path::PathBuf};
+use std::path::PathBuf;
 
 impl TimeManger {
     pub async fn get_time_file(&mut self) -> anyhow::Result<()> {
