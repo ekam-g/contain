@@ -102,6 +102,7 @@ async fn update_time_data(time_manger: &Arc<Mutex<TimeManger>>) -> Rc<VecModel<(
     });
     time_data
 }
+//todo improve this to work better with async 
 async fn remove_old_files_thread(time_manger: Arc<Mutex<TimeManger>>, ui_handle: Weak<MyApp>) {
     tokio::spawn(async move {
         loop {

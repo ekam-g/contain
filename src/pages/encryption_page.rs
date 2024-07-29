@@ -76,7 +76,6 @@ export component EncryptionPage inherits Window {
 }
 
 }
-//todo make the error  page
 pub fn run(path: PathBuf, time: &Arc<Mutex<TimeManger>>) -> Result<(), slint::PlatformError> {
     let ui = EncryptionPage::new()?;
     ui.on_close({

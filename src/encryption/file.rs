@@ -79,7 +79,7 @@ async fn example() {
     path.push("encryption");
     path.push("test");
     path.set_extension("txt");
-    let mut file_check = EncryptedFile::new(path);
+    let  file_check = EncryptedFile::new(path);
     file_check
         .write_file(TEST_VALUE.to_owned().into_bytes())
         .unwrap();

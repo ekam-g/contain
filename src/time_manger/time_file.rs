@@ -39,7 +39,7 @@ impl TimeManger {
         let efile: EncryptedFile = EncryptedFile::new(path);
         let (err1, err2) = tokio::join!(efile.encrypt_file(), self.write_time_file());
         if err2.is_err() {
-            efile.decrypt_file().await;
+            efile.decrypt_file().await?;
             return Err(anyhow!("Failed To Decript File"));
         }
         err1?;
