@@ -6,6 +6,7 @@ use pages::home_page;
 
 pub const TEST_VALUE: &str = "This works very well";
 
-fn main() -> Result<(), slint::PlatformError> {
-    home_page::run()
+#[tokio::main]
+async fn main() {
+    home_page::run().await.expect("Failed to Start App");
 }

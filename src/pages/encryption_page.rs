@@ -93,7 +93,7 @@ pub fn run(path: PathBuf, time: &Arc<Mutex<TimeManger>>) -> Result<(), slint::Pl
         move || {
             let ui = ui_handle.unwrap();
             let mut time = time.lock().unwrap();
-            time.update_time().unwrap();
+            // time.update_time().unwrap();
             time.add_file(path.clone(), ui.get_min().parse::<u128>().unwrap() * 60)
                 .unwrap();
             ui.hide().unwrap();

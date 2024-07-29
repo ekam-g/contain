@@ -67,7 +67,7 @@ export component MyApp inherits Window {
 }
 
 }
-pub fn run() -> Result<(), slint::PlatformError> {
+pub async fn run() -> Result<(), slint::PlatformError> {
     let ui = MyApp::new()?;
     let time_manger = Arc::new(Mutex::new(TimeManger::new().unwrap()));
     remove_old_files_thread(Arc::clone(&time_manger), ui.as_weak());
