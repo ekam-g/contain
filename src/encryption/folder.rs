@@ -1,6 +1,11 @@
+use anyhow::Ok;
+use rayon::iter::{IntoParallelIterator, ParallelBridge, ParallelIterator};
+use walkdir::WalkDir;
+
 use super::base::{decrypt, encrypt};
 use super::file_sys_trait::Encryptable;
 use crate::encryption::base::KEY;
+use crate::encryption::file::EncryptedFile;
 #[allow(unused_imports)]
 use crate::TEST_VALUE;
 use std::fs::OpenOptions;
@@ -19,10 +24,30 @@ impl EncryptedFolder {
 }
 impl Encryptable for EncryptedFolder {
     fn encrypt_file(&self) -> anyhow::Result<()> {
-        todo!()
+        WalkDir::new(&self.path)
+            .into_iter()
+            .filter_map(|e| e.ok())
+            .par_bridge()
+            .into_par_iter()
+            .try_for_each(|entry| {
+                let efile = EncryptedFile::new(entry.path().to_owned());
+                efile.encrypt_file()?;
+                Ok(())
+            })?;
+        Ok(())
     }
     fn decrypt_file(&self) -> anyhow::Result<()> {
-        todo!()
+        WalkDir::new(&self.path)
+            .into_iter()
+            .filter_map(|e| e.ok())
+            .par_bridge()
+            .into_par_iter()
+            .try_for_each(|entry| {
+                let efile = EncryptedFile::new(entry.path().to_owned());
+                efile.decrypt_file()?;
+                Ok(())
+            })?;
+        Ok(())
     }
 }
 
