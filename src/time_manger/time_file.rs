@@ -3,7 +3,7 @@ use super::{
     TimeManger,
 };
 use crate::encryption::{file::EncryptedFile, file_sys_trait::{Encryptable, EncryptedFileOrFolder}};
-use anyhow::{anyhow, Ok};
+use anyhow::anyhow;
 use std::path::PathBuf;
 
 impl TimeManger {
@@ -64,10 +64,16 @@ impl TimeManger {
             .current_unix_time
             .ok_or(anyhow!("Current Time is is unknown"))?;
         for file in self.time_files.iter().filter(|s| s.time < time) {
-            let efile = EncryptedFileOrFolder::new(file.path.clone().into())?;
-            if let Err(e) = efile.decrypt_file() {
-                failed.push((file.path.clone(), e))
-            }
+            match EncryptedFileOrFolder::new(file.path.clone().into()) {
+                Ok(efile) => {
+                    if let Err(e) = efile.decrypt_file() {
+                        failed.push((file.path.clone(), e))
+                    }
+                },
+                Err(e) => {
+                    failed.push((file.path.clone(), e))
+                }
+            } 
         }
         self.time_files = self
             .time_files
@@ -153,6 +159,7 @@ mod timefile_tests {
         time.current_unix_time = Some(6);
         time.decrypt_old_files().await.unwrap();
     }
+    //todo checky why test fail
     #[tokio::test]
     async fn fail_test() {
         let mut time_path = PathBuf::new();
@@ -184,6 +191,7 @@ mod timefile_tests {
         time.time_files = vec![];
         time.write_time_file().await.unwrap();
     }
+    //todo checky why test fail
 
     #[tokio::test]
     async  fn not_done_test() {
