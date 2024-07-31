@@ -16,15 +16,7 @@ pub struct TimeManger {
 
 impl TimeManger {
     pub async fn new() -> anyhow::Result<TimeManger> {
-        let mut time = TimeManger {
-            time_files: vec![],
-            current_unix_time: None,
-            time_file_location: EncryptedFile::file_location(),
-        };
-        if time.get_time_file().await.is_err() {
-            time.create_time_file(TimeFileJson { time_files: vec![] }).await?;
-        }
-        Ok(time)
+        Self::path_new(EncryptedFile::file_location()).await
     }
     pub async fn path_new(path: PathBuf) -> anyhow::Result<TimeManger> {
         let mut time = TimeManger {
