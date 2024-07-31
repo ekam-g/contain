@@ -1,23 +1,21 @@
-use std::path::PathBuf;
+use std::{fs, path::PathBuf};
 
-pub trait FileSystem {
-    fn new(path: PathBuf) -> Self;
-    fn create_file(
-        &self,
-    ) -> impl std::future::Future<Output = Result<std::fs::File, std::io::Error>> + Send;
-    fn read_file(
-        &self,
-    ) -> impl std::future::Future<Output = Result<Vec<u8>, std::io::Error>> + Send;
-    fn encrypt_write_file(
-        &self,
-        data: Vec<u8>,
-    ) -> impl std::future::Future<Output = anyhow::Result<()>> + Send;
-    fn write_file(&self, data: Vec<u8>) -> anyhow::Result<()>;
+use super::{file::EncryptedFile, folder::EncryptedFolder};
 
-    fn encrypt_file(&self) -> impl std::future::Future<Output = anyhow::Result<()>> + Send;
+pub trait Encryptable: Send + Sync  {
+    fn encrypt_file(&self) -> anyhow::Result<()>;
+    fn decrypt_file(&self) ->  anyhow::Result<()>;
+}
 
-    fn decrypt_read_file(
-        &self,
-    ) -> impl std::future::Future<Output = anyhow::Result<Vec<u8>>> + Send;
-    fn decrypt_file(&self) -> impl std::future::Future<Output = anyhow::Result<()>> + Send;
+pub struct EncryptedFileOrFolder {}
+
+impl EncryptedFileOrFolder {
+    pub fn new(path: PathBuf) ->  anyhow::Result<Box<dyn Encryptable>> {
+        let meta_data = fs::metadata(&path)?;
+        if meta_data.is_dir() {
+            Ok(Box::new(EncryptedFolder::new(path)))
+        } else {
+            Ok(Box::new(EncryptedFile::new(path)))
+        }
+    }
 }

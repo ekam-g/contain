@@ -2,7 +2,7 @@ use super::{
     time_file_json::{TimeFile, TimeFileJson},
     TimeManger,
 };
-use crate::encryption::file::EncryptedFile;
+use crate::encryption::{file::EncryptedFile, file_sys_trait::{Encryptable, EncryptedFileOrFolder}};
 use anyhow::{anyhow, Ok};
 use std::path::PathBuf;
 
@@ -47,12 +47,12 @@ impl TimeManger {
                 .ok_or(anyhow!("Failed to convert path to string"))?
                 .to_owned(),
         });
-        let efile = EncryptedFile::new(path);
-        let (err1, err2) = tokio::join!(efile.encrypt_file(), self.write_time_file());
+        let efile = EncryptedFileOrFolder::new(path)?;
+        let (err1, err2) = tokio::join!(async {efile.encrypt_file()}, self.write_time_file());
         if err2.is_err() {
-            efile.decrypt_file().await?;
+            efile.decrypt_file()?;
             return Err(anyhow!("Failed To Decript File"));
-        }
+        }   
         err1?;
         Ok(())
     }
@@ -64,8 +64,8 @@ impl TimeManger {
             .current_unix_time
             .ok_or(anyhow!("Current Time is is unknown"))?;
         for file in self.time_files.iter().filter(|s| s.time < time) {
-            let efile = EncryptedFile::new(file.path.clone().into());
-            if let Err(e) = efile.decrypt_file().await {
+            let efile = EncryptedFileOrFolder::new(file.path.clone().into())?;
+            if let Err(e) = efile.decrypt_file() {
                 failed.push((file.path.clone(), e))
             }
         }
@@ -87,7 +87,7 @@ impl TimeManger {
 mod timefile_tests {
     use super::TimeManger;
     use crate::{
-        encryption::file::EncryptedFile, time_manger::time_file_json::TimeFile, TEST_VALUE,
+        encryption::{file::EncryptedFile, file_sys_trait::Encryptable}, time_manger::time_file_json::TimeFile, TEST_VALUE,
     };
     use std::path::PathBuf;
     #[tokio::test]
@@ -102,7 +102,7 @@ mod timefile_tests {
         file_check
             .encrypt_write_file(TEST_VALUE.to_owned().into_bytes()).await
             .unwrap();
-        file_check.decrypt_file().await.unwrap();
+        file_check.decrypt_file().unwrap();
         let mut time_path = PathBuf::new();
         time_path.push("src");
         time_path.push("time_manger");

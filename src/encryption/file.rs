@@ -1,4 +1,7 @@
+use futures::executor::block_on;
+
 use super::base::{decrypt, encrypt};
+use super::file_sys_trait::Encryptable;
 use crate::encryption::base::KEY;
 #[allow(unused_imports)]
 use crate::TEST_VALUE;
@@ -34,7 +37,7 @@ impl EncryptedFile {
         file.flush()?;
         Ok(())
     }
-    fn  write_file(&self, data: Vec<u8>) -> anyhow::Result<()> {
+    pub fn write_file(&self, data: Vec<u8>) -> anyhow::Result<()> {
         let mut file = OpenOptions::new().read(true).write(true).open(&self.path)?;
         file.seek(SeekFrom::Start(0)).unwrap();
         file.set_len(0)?;
@@ -42,19 +45,19 @@ impl EncryptedFile {
         file.flush()?;
         Ok(())
     }
-
-    pub async fn encrypt_file(&self) -> anyhow::Result<()> {
-        let data = self.read_file().await?;
-        let data = encrypt(&data, KEY.as_ref())?;
-        self.write_file(data)
-    }
-
-    pub  async fn decrypt_read_file(&self) -> anyhow::Result<Vec<u8>> {
+    pub async fn decrypt_read_file(&self) -> anyhow::Result<Vec<u8>> {
         let data: Vec<u8> = self.read_file().await?;
         decrypt(&data, KEY.as_ref())
     }
-    pub async fn decrypt_file(&self) -> anyhow::Result<()> {
-        let data: Vec<u8> = self.decrypt_read_file().await?;
+}
+impl Encryptable for EncryptedFile {
+    fn encrypt_file(&self) -> anyhow::Result<()> {
+        let data = block_on( self.read_file())?;
+        let data = encrypt(&data, KEY.as_ref())?;
+        self.write_file(data)
+    }
+    fn decrypt_file(&self) -> anyhow::Result<()> {
+        let data: Vec<u8> = block_on(self.decrypt_read_file())?;
         self.write_file(data)
     }
 }
@@ -67,15 +70,15 @@ async fn example() {
     path.push("encryption");
     path.push("test");
     path.set_extension("txt");
-    let  file_check = EncryptedFile::new(path);
+    let file_check = EncryptedFile::new(path);
     file_check
         .write_file(TEST_VALUE.to_owned().into_bytes())
         .unwrap();
-    file_check.encrypt_file().await.unwrap();
+    file_check.encrypt_file().unwrap();
     let data: Vec<u8> = file_check.read_file().await.unwrap();
     let println_data = String::from_utf8_lossy(&data);
     println!("{}", println_data);
-    file_check.decrypt_file().await.unwrap();
+    file_check.decrypt_file().unwrap();
     let data = String::from_utf8(file_check.read_file().await.unwrap()).unwrap();
     assert!(data == TEST_VALUE)
 }

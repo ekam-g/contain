@@ -85,7 +85,7 @@ pub async fn run() -> Result<(), slint::PlatformError> {
                     .unwrap();
                     return;
                 }
-                let file = FileDialog::new().pick_file();
+                let file = FileDialog::new().pick_folder();
                 if let Some(file_checked) = file {
                     slint::invoke_from_event_loop(move || {
                         encryption_page::run(file_checked, &time_manger).unwrap()
