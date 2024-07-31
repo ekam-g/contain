@@ -113,52 +113,55 @@ async fn update_time_data(
 }
 
 async fn remove_old_files_thread(time_manger: Arc<Mutex<TimeManger>>, ui_handle: Weak<MyApp>) {
-    tokio::spawn(async move {
-        loop {
-            thread::sleep(Duration::from_millis(500));
-            if time_manger.lock().await.update_time().await.is_err() {
-                println!("Failed To Update Time");
-                continue;
-            }
-            match time_manger.lock().await.decrypt_old_files().await {
-                Err(e) => {
-                    error_page::run(format!("Failed To Decrypt Due To: {}", e), false).unwrap();
-                    slint::invoke_from_event_loop(move || {
-                        error_page::run(format!("Failed To Decrypt Due To: {}", e), false).unwrap();
-                    })
-                    .unwrap();
+    thread::spawn(move || {
+        block_on(async {
+            loop {
+                thread::sleep(Duration::from_millis(500));
+                if time_manger.lock().await.update_time().await.is_err() {
+                    println!("Failed To Update Time");
                     continue;
                 }
-                Ok(failed) => {
-                    for (path, e) in failed {
-                        let time_manger: Arc<Mutex<TimeManger>> = Arc::clone(&time_manger);
+                match time_manger.lock().await.decrypt_old_files().await {
+                    Err(e) => {
+                        error_page::run(format!("Failed To Decrypt Due To: {}", e), false).unwrap();
                         slint::invoke_from_event_loop(move || {
-                            let mut time = block_on(time_manger.lock());
-                            let input: bool = error_page::run(
-                                format!("Failed To Decrypt {} Due To: {}", path, e),
-                                true,
-                            )
-                            .unwrap();
-                            if input {
-                                time.time_files = time
-                                    .time_files
-                                    .clone()
-                                    .into_iter()
-                                    .filter(|time_file| time_file.path != *path)
-                                    .collect();
-                            }
+                            error_page::run(format!("Failed To Decrypt Due To: {}", e), false)
+                                .unwrap();
                         })
                         .unwrap();
+                        continue;
                     }
-                    let time_manger: Arc<Mutex<TimeManger>> = Arc::clone(&time_manger);
-                    ui_handle
-                        .upgrade_in_event_loop(move |handle| {
-                            let data = block_on(update_time_data(&time_manger));
-                            handle.set_time_data(ModelRc::from(data));
-                        })
-                        .unwrap();
+                    Ok(failed) => {
+                        for (path, e) in failed {
+                            let time_manger: Arc<Mutex<TimeManger>> = Arc::clone(&time_manger);
+                            slint::invoke_from_event_loop(move || {
+                                let mut time = block_on(time_manger.lock());
+                                let input: bool = error_page::run(
+                                    format!("Failed To Decrypt {} Due To: {}", path, e),
+                                    true,
+                                )
+                                .unwrap();
+                                if input {
+                                    time.time_files = time
+                                        .time_files
+                                        .clone()
+                                        .into_iter()
+                                        .filter(|time_file| time_file.path != *path)
+                                        .collect();
+                                }
+                            })
+                            .unwrap();
+                        }
+                        let time_manger: Arc<Mutex<TimeManger>> = Arc::clone(&time_manger);
+                        ui_handle
+                            .upgrade_in_event_loop(move |handle| {
+                                let data = block_on(update_time_data(&time_manger));
+                                handle.set_time_data(ModelRc::from(data));
+                            })
+                            .unwrap();
+                    }
                 }
             }
-        }
+        })
     });
 }

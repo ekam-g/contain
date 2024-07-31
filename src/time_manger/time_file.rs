@@ -2,7 +2,7 @@ use super::{
     time_file_json::{TimeFile, TimeFileJson},
     TimeManger,
 };
-use crate::encryption::{file::EncryptedFile, file_sys_trait::{Encryptable, EncryptedFileOrFolder}};
+use crate::encryption::{file::EncryptedFile, file_sys_trait::EncryptedFileOrFolder};
 use anyhow::anyhow;
 use std::path::PathBuf;
 

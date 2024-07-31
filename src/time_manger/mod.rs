@@ -1,6 +1,5 @@
 use std::path::PathBuf;
 
-use crate::encryption::file::EncryptedFile;
 
 use self::time_file_json::{TimeFile, TimeFileJson};
 
