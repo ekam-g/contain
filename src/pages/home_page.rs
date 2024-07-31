@@ -113,7 +113,7 @@ async fn update_time_data(
 }
 
 async fn remove_old_files_thread(time_manger: Arc<Mutex<TimeManger>>, ui_handle: Weak<MyApp>) {
-    thread::spawn(move || {
+    tokio::task::spawn_blocking(move || {
         block_on(async {
             loop {
                 thread::sleep(Duration::from_millis(500));
