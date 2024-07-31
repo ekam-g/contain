@@ -7,20 +7,32 @@ use anyhow::{anyhow, Ok};
 use std::path::PathBuf;
 
 impl TimeManger {
+    pub fn file_location() -> PathBuf {
+        let mut home_dir = match home::home_dir() {
+            Some(path) => path,
+            None => {
+                println!("Failed to get your home dir!");
+                PathBuf::new()
+            }
+        };
+        home_dir.push(".time-lock");
+        home_dir.set_extension("contain");
+        home_dir
+    }
     pub async fn get_time_file(&mut self) -> anyhow::Result<()> {
-        let efile: EncryptedFile = EncryptedFile::new(self.time_file_location.to_path_buf());
+        let efile = EncryptedFile::new(self.time_file_location.to_path_buf());
         let data: TimeFileJson = serde_json::from_slice(&efile.decrypt_read_file().await?)?;
         self.time_files = data.time_files;
         Ok(())
     }
     pub async fn create_time_file(&self, data: TimeFileJson) -> anyhow::Result<()> {
-        let efile: EncryptedFile = EncryptedFile::new(self.time_file_location.to_path_buf());
+        let efile = EncryptedFile::new(self.time_file_location.to_path_buf());
         efile.create_file().await?;
         efile.encrypt_write_file(serde_json::to_vec(&data)?).await?;
         Ok(())
     }
     pub async fn write_time_file(&self) -> anyhow::Result<()> {
-        let efile: EncryptedFile = EncryptedFile::new(self.time_file_location.to_path_buf());
+        let efile = EncryptedFile::new(self.time_file_location.to_path_buf());
         efile.encrypt_write_file(serde_json::to_vec(&TimeFileJson::new(&self.time_files))?).await?;
         Ok(())
     }
@@ -35,7 +47,7 @@ impl TimeManger {
                 .ok_or(anyhow!("Failed to convert path to string"))?
                 .to_owned(),
         });
-        let efile: EncryptedFile = EncryptedFile::new(path);
+        let efile = EncryptedFile::new(path);
         let (err1, err2) = tokio::join!(efile.encrypt_file(), self.write_time_file());
         if err2.is_err() {
             efile.decrypt_file().await?;

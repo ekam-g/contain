@@ -16,7 +16,7 @@ pub struct TimeManger {
 
 impl TimeManger {
     pub async fn new() -> anyhow::Result<TimeManger> {
-        Self::path_new(EncryptedFile::file_location()).await
+        Self::path_new(Self::file_location()).await
     }
     pub async fn path_new(path: PathBuf) -> anyhow::Result<TimeManger> {
         let mut time = TimeManger {

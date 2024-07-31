@@ -57,19 +57,6 @@ impl EncryptedFile {
         let data: Vec<u8> = self.decrypt_read_file().await?;
         self.write_file(data)
     }
-
-    pub fn file_location() -> PathBuf {
-        let mut home_dir = match home::home_dir() {
-            Some(path) => path,
-            None => {
-                println!("Failed to get your home dir!");
-                PathBuf::new()
-            }
-        };
-        home_dir.push(".time-lock");
-        home_dir.set_extension("contain");
-        home_dir
-    }
 }
 
 #[tokio::test]
