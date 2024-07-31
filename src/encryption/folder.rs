@@ -1,15 +1,12 @@
 use anyhow::Ok;
+use futures::executor::block_on;
 use rayon::iter::{IntoParallelIterator, ParallelBridge, ParallelIterator};
 use walkdir::WalkDir;
 
-use super::base::{decrypt, encrypt};
 use super::file_sys_trait::Encryptable;
-use crate::encryption::base::KEY;
 use crate::encryption::file::EncryptedFile;
 #[allow(unused_imports)]
 use crate::TEST_VALUE;
-use std::fs::OpenOptions;
-use std::io::{BufReader, Read, Seek, SeekFrom, Write};
 use std::path::PathBuf;
 
 #[derive(Debug, Default, Clone, PartialEq, Eq)]
@@ -30,8 +27,10 @@ impl Encryptable for EncryptedFolder {
             .par_bridge()
             .into_par_iter()
             .try_for_each(|entry| {
-                let efile = EncryptedFile::new(entry.path().to_owned());
-                efile.encrypt_file()?;
+                if entry.file_type().is_file() {
+                    let efile = EncryptedFile::new(entry.path().to_owned());
+                    efile.encrypt_file()?;
+                }
                 Ok(())
             })?;
         Ok(())
@@ -43,30 +42,63 @@ impl Encryptable for EncryptedFolder {
             .par_bridge()
             .into_par_iter()
             .try_for_each(|entry| {
-                let efile = EncryptedFile::new(entry.path().to_owned());
-                efile.decrypt_file()?;
+                if entry.file_type().is_file() {
+                    let efile = EncryptedFile::new(entry.path().to_owned());
+                    efile.decrypt_file()?;
+                }
                 Ok(())
             })?;
         Ok(())
     }
 }
+#[allow(dead_code)]
+type Callback = fn(PathBuf);
+#[allow(dead_code)]
+fn walk_write(path: &PathBuf, callback : Callback) {
+    WalkDir::new(&path)
+    .into_iter()
+    .filter_map(|e| e.ok())
+    .par_bridge()
+    .into_par_iter()
+    .try_for_each(|entry| {
+        if entry.file_type().is_file() {
+           callback(entry.into_path())
+        }
+        Ok(())
+    }).unwrap();
+}
+#[allow(dead_code)]
+fn write(path: PathBuf) {
+    let file = EncryptedFile::new(path);
+    file.write_file(TEST_VALUE.as_bytes().to_owned()).unwrap();
+}   
+
+#[allow(dead_code)]
+fn end_test(path: PathBuf) {
+    let file = EncryptedFile::new(path);
+    let val = String::from_utf8(block_on(file.read_file()).unwrap()).unwrap();
+    assert!(val == TEST_VALUE)
+}   
+#[allow(dead_code)]
+fn encrypt_test(path: PathBuf) {
+    let file = EncryptedFile::new(path);
+    let val = String::from_utf8(block_on(file.decrypt_read_file()).unwrap()).unwrap();
+    assert!(val == TEST_VALUE)
+} 
 
 //todo write folder
 #[tokio::test]
 #[serial_test::serial(file)]
 async fn folder_test() {
-    // let mut path = PathBuf::new();
-    // path.push("src");
-    // path.push("encryption");
-    // path.push("test");
-    // path.set_extension("txt");
-    // let file_check = EncryptedFile::new(path);
-    // file_check
-    //     .write_file(TEST_VALUE.to_owned().into_bytes())
-    //     .unwrap();
-    // file_check
-    //     .write_file(TEST_VALUE.to_owned().into_bytes())
-    //     .unwrap();
-    // let data = String::from_utf8(file_check.read_file().await.unwrap()).unwrap();
-    // assert!(data == TEST_VALUE)
+    let mut path = PathBuf::new();
+    path.push("src");
+    path.push("encryption");
+    path.push("test");
+    let folder = EncryptedFolder::new(path.clone());
+    walk_write(&path, write);
+    folder.encrypt_file().unwrap();
+    walk_write(&path, encrypt_test);
+    folder.decrypt_file().unwrap();
+    walk_write(&path, end_test);
 }
+
