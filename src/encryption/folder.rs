@@ -55,7 +55,7 @@ impl Encryptable for EncryptedFolder {
 type Callback = fn(PathBuf);
 #[allow(dead_code)]
 fn walk_write(path: &PathBuf, callback : Callback) {
-    WalkDir::new(&path)
+    WalkDir::new(path)
     .into_iter()
     .filter_map(|e| e.ok())
     .par_bridge()

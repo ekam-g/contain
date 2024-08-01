@@ -10,6 +10,7 @@ pub trait Encryptable: Send + Sync  {
 pub struct EncryptedFileOrFolder {}
 
 impl EncryptedFileOrFolder {
+    #[allow(clippy::new_ret_no_self)]
     pub fn new(path: PathBuf) ->  anyhow::Result<Box<dyn Encryptable>> {
         let meta_data = fs::metadata(&path)?;
         if meta_data.is_file() {
