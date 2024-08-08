@@ -19,6 +19,7 @@ export component MyApp inherits Window {
     title: "Home - Contain";
     in-out property <[{path: string, time: int}]> time_data;
     callback request-open-file();
+    callback request-open-folder();
     callback request-refresh();
     VerticalBox {
         Rectangle {
@@ -53,9 +54,22 @@ export component MyApp inherits Window {
                 Button {
                     width: 100%;
                     height: 100%;
-                    text: "Get File";
+                    text: "Add File";
                     clicked => {
                         root.request-open-file();
+                    }
+                }
+            }
+            Rectangle {
+                border-width: 1px;
+                border-color: black;
+                border-radius: 12px;
+                Button {
+                    width: 100%;
+                    height: 100%;
+                    text: "Add Folder";
+                    clicked => {
+                        root.request-open-folder();
                     }
                 }
             }
@@ -69,6 +83,7 @@ pub async fn run() -> Result<(), slint::PlatformError> {
     let time_manger = Arc::new(Mutex::new(TimeManger::new().await.unwrap()));
     remove_old_files_thread(Arc::clone(&time_manger), ui.as_weak()).await;
     ui.set_time_data(ModelRc::from(block_on(update_time_data(&time_manger))));
+    let time: Arc<Mutex<TimeManger>> = Arc::clone(&time_manger);
     ui.on_request_open_file({
         move || {
             let time_manger: Arc<Mutex<TimeManger>> = Arc::clone(&time_manger);
@@ -86,6 +101,32 @@ pub async fn run() -> Result<(), slint::PlatformError> {
                     return;
                 }
                 let file = FileDialog::new().pick_file();
+                if let Some(file_checked) = file {
+                    slint::invoke_from_event_loop(move || {
+                        encryption_page::run(file_checked, &time_manger).unwrap()
+                    })
+                    .unwrap();
+                }
+            });
+        }
+    });
+    ui.on_request_open_folder({
+        move || {
+            let time_manger: Arc<Mutex<TimeManger>> = Arc::clone(&time);
+            tokio::spawn(async move {
+                // No Wifi
+                if time_manger.lock().await.current_unix_time.is_none() {
+                    slint::invoke_from_event_loop(move || {
+                        error_page::run(
+                            "Time is unknown(connection to api failed)".to_owned(),
+                            false,
+                        )
+                        .unwrap();
+                    })
+                    .unwrap();
+                    return;
+                }
+                let file = FileDialog::new().pick_folder();
                 if let Some(file_checked) = file {
                     slint::invoke_from_event_loop(move || {
                         encryption_page::run(file_checked, &time_manger).unwrap()
