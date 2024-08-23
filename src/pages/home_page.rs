@@ -89,7 +89,7 @@ pub async fn run() -> Result<(), slint::PlatformError> {
             let time_manger: Arc<Mutex<TimeManger>> = Arc::clone(&time_manger);
             tokio::spawn(async move {
                 // No Wifi
-                if time_manger.lock().await.current_unix_time.is_none() {
+                if time_manger.lock().await.get_time().is_none() {
                     slint::invoke_from_event_loop(move || {
                         error_page::run(
                             "Time is unknown(connection to api failed)".to_owned(),
@@ -115,7 +115,7 @@ pub async fn run() -> Result<(), slint::PlatformError> {
             let time_manger: Arc<Mutex<TimeManger>> = Arc::clone(&time);
             tokio::spawn(async move {
                 // No Wifi
-                if time_manger.lock().await.current_unix_time.is_none() {
+                if time_manger.lock().await.get_time().is_none() {
                     slint::invoke_from_event_loop(move || {
                         error_page::run(
                             "Time is unknown(connection to api failed)".to_owned(),
@@ -144,10 +144,11 @@ async fn update_time_data(
 ) -> Rc<VecModel<(SharedString, i32)>> {
     let time_data: Rc<VecModel<(SharedString, i32)>> = Rc::new(VecModel::default());
     let time = time_manger.lock().await;
+    let actual_time  = time.get_time().unwrap_or_default();
     time.time_files.iter().for_each(|data| {
         time_data.push((
             data.path.clone().into(),
-            ((data.time - time.current_unix_time.unwrap_or_default()) as i32 / 60) + 1,
+            ((data.time - actual_time) as i32 / 60) + 1,
         ))
     });
     time_data
@@ -158,10 +159,6 @@ async fn remove_old_files_thread(time_manger: Arc<Mutex<TimeManger>>, ui_handle:
         block_on(async {
             loop {
                 thread::sleep(Duration::from_millis(500));
-                if time_manger.lock().await.update_time().await.is_err() {
-                    println!("Failed To Update Time");
-                    continue;
-                }
                 match time_manger.lock().await.decrypt_old_files().await {
                     Err(e) => {
                         error_page::run(format!("Failed To Decrypt Due To: {}", e), false).unwrap();

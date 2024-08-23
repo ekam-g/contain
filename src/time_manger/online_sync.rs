@@ -56,25 +56,28 @@ impl TimeManger {
             ))
         }
     }
-    pub async fn update_time(&mut self) -> anyhow::Result<()> {
+    pub async fn update_time_online(&mut self) -> anyhow::Result<()> {
         match TimeManger::fetch_world_time_sync().await {
             Ok(data) => {
                 self.current_unix_time = Some(data.unixtime);
                 return Ok(());
-            },
+            }
             Err(e1) => {
                 //todo add logging
                 println!("{}", e1);
                 match TimeManger::update_time_ntp() {
                     Err(e2) => {
-                        return Err(anyhow!(format!("Connection Error api: {}\n ntp:{}", e1, e2)))
+                        return Err(anyhow!(format!(
+                            "Connection Error\n api: {}\n ntp:{}",
+                            e1, e2
+                        )))
                     }
                     Ok(data) => {
                         self.current_unix_time = Some(data);
                         return Ok(());
                     }
                 }
-            },
+            }
         }
     }
     fn update_time_ntp() -> anyhow::Result<u128> {
@@ -87,6 +90,13 @@ impl TimeManger {
                 let ntp_time = response.transmit_time;
                 return Ok(ntp_time.sec as u128);
             }
+        }
+    }
+    pub fn get_time(&self) -> Option<u128> {
+        if let Some(current_time) = self.current_unix_time {
+            Some(self.timer.elapsed().as_secs() as u128 + current_time)
+        } else {
+            None
         }
     }
 }

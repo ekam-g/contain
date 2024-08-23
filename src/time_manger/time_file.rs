@@ -40,7 +40,7 @@ impl TimeManger {
         self.time_files.push(TimeFile {
             time: time
                 + self
-                    .current_unix_time
+                    .get_time()
                     .ok_or(anyhow!("Current Time is is unknown"))?,
             path: path
                 .to_str()
