@@ -44,8 +44,7 @@ pub struct WorldTimeApiResponse {
 /// Returns an error if the HTTP request fails or if the response status is not successful.
 impl TimeManger {
     async fn fetch_world_time_sync() -> anyhow::Result<WorldTimeApiResponse> {
-        let response =
-            reqwest::get("https://worldtimeapi.org/api/timezone/Europe/London").await?;
+        let response = reqwest::get("https://worldtimeapi.org/api/timezone/Europe/London").await?;
         if response.status().is_success() {
             let body = response.text().await?;
             let parsed_response: WorldTimeApiResponse = serde_json::from_str(&body)?;
@@ -58,8 +57,37 @@ impl TimeManger {
         }
     }
     pub async fn update_time(&mut self) -> anyhow::Result<()> {
-        self.current_unix_time = Some(TimeManger::fetch_world_time_sync().await?.unixtime);
-        Ok(())
+        match TimeManger::fetch_world_time_sync().await {
+            Ok(data) => {
+                self.current_unix_time = Some(data.unixtime);
+                return Ok(());
+            },
+            Err(e1) => {
+                //todo add logging
+                println!("{}", e1);
+                match TimeManger::update_time_ntp() {
+                    Err(e2) => {
+                        return Err(anyhow!(format!("Connection Error api: {}\n ntp:{}", e1, e2)))
+                    }
+                    Ok(data) => {
+                        self.current_unix_time = Some(data);
+                        return Ok(());
+                    }
+                }
+            },
+        }
+    }
+    fn update_time_ntp() -> anyhow::Result<u128> {
+        let response = ntp::request("0.pool.ntp.org:123");
+        match response {
+            Err(e) => {
+                return Err(anyhow!(e.to_string()));
+            }
+            Ok(response) => {
+                let ntp_time = response.transmit_time;
+                return Ok(ntp_time.sec as u128);
+            }
+        }
     }
 }
 #[tokio::test]
