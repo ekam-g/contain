@@ -22,6 +22,9 @@ impl EncryptedFile {
         std::fs::File::create(&self.path)
     }
     pub async fn read_file(&self) -> Result<Vec<u8>, std::io::Error> {
+        self.read_file_blocking()
+    }
+    pub fn read_file_blocking(&self) -> Result<Vec<u8>, std::io::Error> {
         let file = OpenOptions::new().read(true).write(true).open(&self.path)?;
         let mut buf_reader = BufReader::new(file);
         let mut data: Vec<u8> = Vec::new();
@@ -49,15 +52,19 @@ impl EncryptedFile {
         let data: Vec<u8> = self.read_file().await?;
         decrypt(&data, KEY.as_ref())
     }
+    pub fn decrypt_file_blocking(&self) -> anyhow::Result<Vec<u8>> {
+        let data: Vec<u8> = self.read_file_blocking()?;
+        decrypt(&data, KEY.as_ref())
+    }
 }
 impl Encryptable for EncryptedFile {
     fn encrypt_file(&self) -> anyhow::Result<()> {
-        let data = block_on( self.read_file())?;
+        let data = self.read_file_blocking()?;
         let data = encrypt(&data, KEY.as_ref())?;
         self.write_file(data)
     }
     fn decrypt_file(&self) -> anyhow::Result<()> {
-        let data: Vec<u8> = block_on(self.decrypt_read_file())?;
+        let data: Vec<u8> = self.decrypt_file_blocking()?;
         self.write_file(data)
     }
 }
