@@ -15,7 +15,7 @@ slint! {
 
 export component MyApp inherits Window {
     preferred-width: 600px;
-    preferred-height: 600px;
+    preferred-height: 700px;
     title: "Home - Contain";
     in-out property <[{path: string, time: int}]> time_data;
     callback request-open-file();
@@ -138,6 +138,7 @@ pub async fn run() -> Result<(), slint::PlatformError> {
     });
     ui.run()
 }
+// problem here
 
 async fn update_time_data(
     time_manger: &Arc<Mutex<TimeManger>>,
@@ -148,7 +149,7 @@ async fn update_time_data(
     time.time_files.iter().for_each(|data| {
         time_data.push((
             data.path.clone().into(),
-            ((data.time - actual_time) as i32 / 60) + 1,
+            (((data.time / 60) as i32) - (actual_time / 60) as i32) + 1,
         ))
     });
     time_data
