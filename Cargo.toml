@@ -24,7 +24,7 @@ serde_derive = "1.0.204"
 serde_json = "1.0.121"
 serial_test = "3.1.1"
 slint = "1.7.1"
-tokio = { version = "1.39.2", features = ["full"] }
+tokio = { version = "1.43.1", features = ["full"] }
 walkdir = "2.5.0"
 
 [build-dependencies]
